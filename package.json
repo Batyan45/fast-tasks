@@ -1,7 +1,7 @@
 {
   "name": "fast-tasks",
   "displayName": "Fast Tasks",
-  "description": "Quick access to workspace tasks from activity bar",
+  "description": "Quick access to workspace tasks from explorer sidebar",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.95.0"
@@ -12,12 +12,21 @@
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Batyan45/fast-tasks.git"
+  },
   "contributes": {
     "commands": [
       {
         "command": "fast-tasks.refreshTasks",
         "title": "Refresh Tasks",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "fast-tasks.selectTasks",
+        "title": "Select Tasks",
+        "icon": "$(list-selection)"
       }
     ],
     "views": {
@@ -32,9 +41,14 @@
     "menus": {
       "view/title": [
         {
+          "command": "fast-tasks.selectTasks",
+          "when": "view == fastTasksView",
+          "group": "navigation@1"
+        },
+        {
           "command": "fast-tasks.refreshTasks",
           "when": "view == fastTasksView",
-          "group": "navigation"
+          "group": "navigation@2"
         }
       ]
     }

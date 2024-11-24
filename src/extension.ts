@@ -11,7 +11,8 @@ export function activate(context: vscode.ExtensionContext) {
     
     context.subscriptions.push(
         vscode.window.registerTreeDataProvider('fastTasksView', tasksProvider),
-        vscode.commands.registerCommand('fast-tasks.refreshTasks', () => tasksProvider.refresh())
+        vscode.commands.registerCommand('fast-tasks.refreshTasks', () => tasksProvider.refresh()),
+        vscode.commands.registerCommand('fast-tasks.selectTasks', () => tasksProvider.selectTasks())
     );
 }
 
