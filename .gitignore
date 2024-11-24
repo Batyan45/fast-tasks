@@ -1,0 +1,39 @@
+# Build outputs
+out/
+dist/
+
+# Dependencies
+node_modules/
+
+# Testing
+.vscode-test/
+
+# Packaged extensions
+*.vsix
+
+# Editor specific
+.DS_Store
+.idea/
+*.log
+
+# TypeScript
+*.tsbuildinfo
+
+# Coverage directory
+coverage/
+
+# Environment variables
+.env
+
+# NPM
+.npm
+package-lock.json
+
+# Yarn
+yarn.lock
+.yarn-integrity
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
