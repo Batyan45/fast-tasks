@@ -1,9 +1,11 @@
 # Change Log
 
-All notable changes to the "fast-tasks" extension will be documented in this file.
+All notable changes to the "Fast Tasks" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## [0.0.1] - 2024-11-24
 
-## [Unreleased]
-
-- Initial release
+### Added
+- Initial release of Fast Tasks
+- Task list view in activity bar
+- One-click task execution
+- Task refresh functionality
