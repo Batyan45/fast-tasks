@@ -59,6 +59,19 @@
 				"npm: watch-tests"
 			],
 			"problemMatcher": []
-		}
+		},
+        {
+            "label": "compile",
+            "type": "npm",
+            "script": "compile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": ["$tsc", "$eslint-stylish"]
+        }
 	]
 }

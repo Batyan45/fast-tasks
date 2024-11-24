@@ -6,7 +6,14 @@ suite('Fast Tasks Extension Test Suite', () => {
     vscode.window.showInformationMessage('Start all tests.');
 
     test('TasksProvider Initialization', () => {
-        const provider = new TasksProvider(vscode.workspace.workspaceState);
+        // Create a mock Memento object with all required methods
+        const mockMemento: vscode.Memento = {
+            get: (key: string) => undefined,
+            update: (key: string, value: any) => Promise.resolve(),
+            keys: () => []
+        };
+        
+        const provider = new TasksProvider(mockMemento);
         assert.ok(provider, 'TasksProvider should be initialized');
     });
 
