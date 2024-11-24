@@ -2,6 +2,13 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.0.3] - 2024-11-24
+
+### Changed
+- Added color coding for different task types (npm, shell, typescript, etc.)
+- Added specific icons based on task names (build, test, launch, etc.)
+- Reduced required vscode version
+
 ## [0.0.2] - 2024-11-24
 
 ### Added

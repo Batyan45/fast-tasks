@@ -2,11 +2,11 @@
   "name": "fast-tasks",
   "displayName": "Fast Tasks",
   "description": "Quick access to workspace tasks from explorer sidebar",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "batyan-soft",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.95.0"
+    "vscode": "^1.80.0"
   },
   "categories": [
     "Other",
@@ -75,7 +75,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.9",
     "@types/node": "20.x",
-    "@types/vscode": "^1.95.0",
+    "@types/vscode": "^1.80.0",
     "@typescript-eslint/eslint-plugin": "^8.10.0",
     "@typescript-eslint/parser": "^8.7.0",
     "@vscode/test-cli": "^0.0.10",

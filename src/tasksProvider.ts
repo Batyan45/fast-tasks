@@ -43,18 +43,31 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
         }
 
         const tasks = await vscode.tasks.fetchTasks();
+        const workspaceNames = vscode.workspace.workspaceFolders.map(folder => folder.name);
+        
         return tasks
-            .filter(task => this.selectedTasks.length === 0 || this.selectedTasks.includes(task.name))
-            .map(task => new TaskItem(
-                task.name,
-                task.definition.type,
-                vscode.TreeItemCollapsibleState.None,
-                {
-                    command: 'workbench.action.tasks.runTask',
-                    title: '',
-                    arguments: [task.name]
+            .filter(task => {
+                return (task.source === 'Workspace' || workspaceNames.includes(task.source)) &&
+                       (this.selectedTasks.length === 0 || this.selectedTasks.includes(task.name));
+            })
+            .map(task => {
+                const taskItem = new TaskItem(
+                    task.name,
+                    task.definition.type,
+                    vscode.TreeItemCollapsibleState.None,
+                    {
+                        command: 'workbench.action.tasks.runTask',
+                        title: '',
+                        arguments: [task.name]
+                    }
+                );
+                
+                if (this.selectedTasks.includes(task.name)) {
+                    taskItem.resourceUri = vscode.Uri.parse(`task://${task.name}`);
                 }
-            ));
+                
+                return taskItem;
+            });
     }
 }
 
@@ -66,9 +79,38 @@ class TaskItem extends vscode.TreeItem {
         public readonly command?: vscode.Command
     ) {
         super(label, collapsibleState);
-        this.tooltip = `${this.label} (${this.taskType})`;
+        
+        this.label = label;
+        this.tooltip = new vscode.MarkdownString(`**Task:** ${label}\n\n**Type:** ${this.taskType}`);
         this.description = this.taskType;
         this.contextValue = 'task';
-        this.iconPath = new vscode.ThemeIcon('terminal');
+        
+        const iconName = this.getIconNameFromLabel(label.toLowerCase());
+        const iconColor = this.getColorFromTaskType(taskType.toLowerCase());
+        
+        this.iconPath = new vscode.ThemeIcon(iconName, new vscode.ThemeColor(iconColor));
+    }
+
+    private getIconNameFromLabel(label: string): string {
+        if (label.includes('build')) return 'package';
+        if (label.includes('test')) return 'beaker';
+        if (label.includes('launch')) return 'rocket';
+        if (label.includes('terminal')) return 'terminal';
+        if (label.includes('debug')) return 'bug';
+        if (label.includes('watch')) return 'eye';
+        if (label.includes('clean')) return 'trash';
+        if (label.includes('deploy')) return 'cloud-upload';
+        if (label.includes('start')) return 'play';
+        if (label.includes('stop')) return 'stop';
+        return 'gear'; // default icon
+    }
+
+    private getColorFromTaskType(taskType: string): string {
+        if (taskType.includes('npm')) return 'charts.red';
+        if (taskType.includes('shell')) return 'charts.blue';
+        if (taskType.includes('typescript')) return 'charts.purple';
+        if (taskType.includes('gulp')) return 'charts.orange';
+        if (taskType.includes('grunt')) return 'charts.yellow';
+        return 'foreground'; // default white color
     }
 }
