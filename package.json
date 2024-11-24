@@ -2,7 +2,9 @@
   "name": "fast-tasks",
   "displayName": "Fast Tasks",
   "description": "Quick access to workspace tasks from explorer sidebar",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "publisher": "batyan-soft",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -15,6 +17,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Batyan45/fast-tasks.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Batyan45/fast-tasks/issues"
   },
   "contributes": {
     "commands": [
