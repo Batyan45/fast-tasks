@@ -42,16 +42,15 @@ Fast Tasks is a VS Code extension that provides quick access to your workspace t
 
 ## Usage
 
-1. 📁 Locate the Tasks section in the Explorer view
-2. 📋 Click the selection button (list icon) to choose which tasks to display
-3. ✅ Select tasks you want to see in the view
-4. 👀 View your selected tasks with enhanced visual formatting
-5. 🖱️ Click on any task to run it
-6. 🔄 Use the refresh button to update the task list
+1. Locate the Tasks section in the Explorer view
+2. Click the selection button (list icon) to choose which tasks to display
+3. Select tasks you want to see in the view
+5. Click on any task to run it
+6. Use the refresh button to update the task list
 
 ## Requirements
 
-- Visual Studio Code version 1.95.0 or higher
+- Visual Studio Code version 1.80.0 or higher
 - A workspace with defined tasks (in tasks.json or workspace files)
 
 ## License

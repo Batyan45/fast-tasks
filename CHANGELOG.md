@@ -2,6 +2,11 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.0.5] - 2024-11-25
+
+### Added
+- Extension marketplace icon
+
 ## [0.0.4] - 2024-11-25
 
 ### Fixed
