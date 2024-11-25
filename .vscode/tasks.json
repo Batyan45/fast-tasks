@@ -72,6 +72,16 @@
                 "reveal": "silent"
             },
             "problemMatcher": ["$tsc", "$eslint-stylish"]
+        },
+        {
+            "label": "publish",
+            "type": "shell",
+            "command": "vsce publish",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
         }
 	]
 }

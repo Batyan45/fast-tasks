@@ -12,7 +12,12 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
 
     async selectTasks(): Promise<void> {
         const tasks = await vscode.tasks.fetchTasks();
-        const taskItems = tasks.map(task => ({
+        const configuredTasks = tasks.filter(task => 
+            task.source === 'Workspace' || 
+            (task as any)._source?.kind === 2 // TaskSourceKind.WorkspaceFile = 2
+        );
+        
+        const taskItems = configuredTasks.map(task => ({
             label: task.name,
             picked: this.selectedTasks.includes(task.name)
         }));
@@ -43,12 +48,14 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
         }
 
         const tasks = await vscode.tasks.fetchTasks();
-        const workspaceNames = vscode.workspace.workspaceFolders.map(folder => folder.name);
         
         return tasks
             .filter(task => {
-                return (task.source === 'Workspace' || workspaceNames.includes(task.source)) &&
-                       (this.selectedTasks.length === 0 || this.selectedTasks.includes(task.name));
+                const isConfigured = task.source === 'Workspace' || 
+                                   (task as any)._source?.kind === 2; // TaskSourceKind.WorkspaceFile = 2
+                return isConfigured && 
+                       (this.selectedTasks.length === 0 || 
+                        this.selectedTasks.includes(task.name));
             })
             .map(task => {
                 const taskItem = new TaskItem(
@@ -92,25 +99,25 @@ class TaskItem extends vscode.TreeItem {
     }
 
     private getIconNameFromLabel(label: string): string {
-        if (label.includes('build')) return 'package';
-        if (label.includes('test')) return 'beaker';
-        if (label.includes('launch')) return 'rocket';
-        if (label.includes('terminal')) return 'terminal';
-        if (label.includes('debug')) return 'bug';
-        if (label.includes('watch')) return 'eye';
-        if (label.includes('clean')) return 'trash';
-        if (label.includes('deploy')) return 'cloud-upload';
-        if (label.includes('start')) return 'play';
-        if (label.includes('stop')) return 'stop';
+        if (label.includes('build')) { return 'package'; }
+        if (label.includes('test')) { return 'beaker'; }
+        if (label.includes('launch')) { return 'rocket'; }
+        if (label.includes('terminal')) { return 'terminal'; }
+        if (label.includes('debug')) { return 'bug'; }
+        if (label.includes('watch')) { return 'eye'; }
+        if (label.includes('clean')) { return 'trash'; }
+        if (label.includes('deploy')) { return 'cloud-upload'; }
+        if (label.includes('start')) { return 'play'; }
+        if (label.includes('stop')) { return 'stop'; }
         return 'gear'; // default icon
     }
 
     private getColorFromTaskType(taskType: string): string {
-        if (taskType.includes('npm')) return 'charts.red';
-        if (taskType.includes('shell')) return 'charts.blue';
-        if (taskType.includes('typescript')) return 'charts.purple';
-        if (taskType.includes('gulp')) return 'charts.orange';
-        if (taskType.includes('grunt')) return 'charts.yellow';
+        if (taskType.includes('npm')) { return 'charts.red'; }
+        if (taskType.includes('shell')) { return 'charts.blue'; }
+        if (taskType.includes('typescript')) { return 'charts.purple'; }
+        if (taskType.includes('gulp')) { return 'charts.orange'; }
+        if (taskType.includes('grunt')) { return 'charts.yellow'; }
         return 'foreground'; // default white color
     }
 }
