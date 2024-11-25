@@ -99,16 +99,17 @@ class TaskItem extends vscode.TreeItem {
     }
 
     private getIconNameFromLabel(label: string): string {
+        if (label.includes('debug')) { return 'bug'; }
         if (label.includes('build')) { return 'package'; }
         if (label.includes('test')) { return 'beaker'; }
         if (label.includes('launch')) { return 'rocket'; }
         if (label.includes('terminal')) { return 'terminal'; }
-        if (label.includes('debug')) { return 'bug'; }
         if (label.includes('watch')) { return 'eye'; }
         if (label.includes('clean')) { return 'trash'; }
         if (label.includes('deploy')) { return 'cloud-upload'; }
         if (label.includes('start')) { return 'play'; }
         if (label.includes('stop')) { return 'stop'; }
+        if (label.includes('publish')) { return 'cloud'; }
         return 'gear'; // default icon
     }
 
@@ -118,6 +119,6 @@ class TaskItem extends vscode.TreeItem {
         if (taskType.includes('typescript')) { return 'charts.purple'; }
         if (taskType.includes('gulp')) { return 'charts.orange'; }
         if (taskType.includes('grunt')) { return 'charts.yellow'; }
-        return 'foreground'; // default white color
+        return 'charts.yellow'; // default color
     }
 }

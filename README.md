@@ -17,7 +17,7 @@ Fast Tasks is a VS Code extension that provides quick access to your workspace t
   - 🔴 NPM tasks
   - 🔵 Shell tasks
   - 🟣 TypeScript tasks
-  - ⚪ Other tasks (default)
+  - 🟡 Other tasks (default)
 
 - **Task-specific Icons**: Icons are chosen based on task names
   - 📦 Build tasks
@@ -29,6 +29,7 @@ Fast Tasks is a VS Code extension that provides quick access to your workspace t
   - ☁️ Deploy tasks
   - ▶️ Start tasks
   - ⏹️ Stop tasks
+  - ☁️ Publish tasks
   - ⚙️ Other tasks (default)
 
 - **Rich Tooltips**: Detailed task information on hover

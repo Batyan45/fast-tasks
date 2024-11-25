@@ -2,6 +2,14 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.0.4] - 2024-11-25
+
+### Fixed
+- Task filtering functionality improvements
+
+### Added
+- New icon for publish tasks
+
 ## [0.0.3] - 2024-11-24
 
 ### Changed

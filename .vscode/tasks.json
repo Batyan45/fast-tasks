@@ -74,9 +74,19 @@
             "problemMatcher": ["$tsc", "$eslint-stylish"]
         },
         {
-            "label": "publish",
+            "label": "VSCODE publish",
             "type": "shell",
             "command": "vsce publish",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "VSCODE build",
+            "type": "shell",
+            "command": "vsce package",
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"
