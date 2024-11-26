@@ -2,7 +2,7 @@
   "name": "fast-tasks",
   "displayName": "Fast Tasks",
   "description": "Quick access to workspace tasks from explorer sidebar",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "publisher": "batyan-soft",
   "license": "MIT",
   "icon": "images/icon.png",
@@ -84,7 +84,8 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test",
-    "build-vsix": "npm run package && vsce package"
+    "build-vsix": "npm run package && vsce package",
+    "version": "npm version --no-git-tag-version"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.9",
