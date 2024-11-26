@@ -5,6 +5,7 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
     readonly onDidChangeTreeData: vscode.Event<TaskItem | undefined | null | void> = this._onDidChangeTreeData.event;
     private activeTasks: Map<string, vscode.Task> = new Map();
     private taskStatuses: Map<string, string> = new Map();
+    private activeExecutions: Map<string, vscode.TaskExecution> = new Map();
 
     constructor(private workspaceState: vscode.Memento) {
         this.selectedTasks = this.workspaceState.get('selectedTasks', []);
@@ -13,6 +14,7 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
         vscode.tasks.onDidStartTaskProcess(e => {
             if (e.execution.task) {
                 this.activeTasks.set(e.execution.task.name, e.execution.task);
+                this.activeExecutions.set(e.execution.task.name, e.execution);
                 this.refresh();
             }
         });
@@ -21,6 +23,7 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
             if (e.execution.task) {
                 const taskName = e.execution.task.name;
                 this.activeTasks.delete(taskName);
+                this.activeExecutions.delete(taskName);
                 this.taskStatuses.set(taskName, e.exitCode === 0 ? 'Success' : 'Failed');
                 this.refresh();
             }
@@ -97,6 +100,7 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
                 if (isActive) {
                     taskItem.description = 'Running...';
                     taskItem.iconPath = new vscode.ThemeIcon('sync~spin');
+                    taskItem.contextValue = 'runningTask';
                 } else if (status) {
                     taskItem.description = status;
                 }
@@ -108,9 +112,16 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
                 return taskItem;
             });
     }
+
+    async stopTask(item: TaskItem): Promise<void> {
+        const execution = this.activeExecutions.get(item.label);
+        if (execution) {
+            execution.terminate();
+        }
+    }
 }
 
-class TaskItem extends vscode.TreeItem {
+export class TaskItem extends vscode.TreeItem {
     constructor(
         public readonly label: string,
         public readonly taskType: string,

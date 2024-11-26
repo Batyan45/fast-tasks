@@ -2,6 +2,10 @@
 
 Fast Tasks is a VS Code extension that provides quick access to your workspace tasks directly from the explorer view.
 
+![Fast Tasks View](https://raw.githubusercontent.com/Batyan45/fast-tasks/main/images/fast-tasks-view.gif)
+
+![Fast Tasks Check](https://raw.githubusercontent.com/Batyan45/fast-tasks/main/images/fast-tasks-check.gif)
+
 ## Features
 
 - Automatic task execution on click from the explorer view
@@ -35,10 +39,6 @@ Fast Tasks is a VS Code extension that provides quick access to your workspace t
 - **Rich Tooltips**: Detailed task information on hover
 - **Selected Task Highlighting**: Visual indication of your selected tasks
 - **Clean Interface**: Organized and intuitive task view
-
-![Fast Tasks View](https://raw.githubusercontent.com/Batyan45/fast-tasks/main/images/fast-tasks-view.gif)
-
-![Fast Tasks Check](https://raw.githubusercontent.com/Batyan45/fast-tasks/main/images/fast-tasks-check.gif)
 
 ## Usage
 

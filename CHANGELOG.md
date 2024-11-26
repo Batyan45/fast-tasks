@@ -2,6 +2,11 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.0.7] - 2024-11-26
+
+### Added
+- Stop button for running tasks
+
 ## [0.0.6] - 2024-11-26
 
 ### Added
