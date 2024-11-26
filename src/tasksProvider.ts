@@ -3,9 +3,28 @@ import * as vscode from 'vscode';
 export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<TaskItem | undefined | null | void> = new vscode.EventEmitter<TaskItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<TaskItem | undefined | null | void> = this._onDidChangeTreeData.event;
+    private activeTasks: Map<string, vscode.Task> = new Map();
+    private taskStatuses: Map<string, string> = new Map();
 
     constructor(private workspaceState: vscode.Memento) {
         this.selectedTasks = this.workspaceState.get('selectedTasks', []);
+
+        // Register task execution listener
+        vscode.tasks.onDidStartTaskProcess(e => {
+            if (e.execution.task) {
+                this.activeTasks.set(e.execution.task.name, e.execution.task);
+                this.refresh();
+            }
+        });
+
+        vscode.tasks.onDidEndTaskProcess(e => {
+            if (e.execution.task) {
+                const taskName = e.execution.task.name;
+                this.activeTasks.delete(taskName);
+                this.taskStatuses.set(taskName, e.exitCode === 0 ? 'Success' : 'Failed');
+                this.refresh();
+            }
+        });
     }
 
     private selectedTasks: string[] = [];
@@ -34,7 +53,10 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
         }
     }
 
-    refresh(): void {
+    refresh(clearStatuses = false): void {
+        if (clearStatuses) {
+            this.taskStatuses.clear();
+        }
         this._onDidChangeTreeData.fire();
     }
 
@@ -58,6 +80,9 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
                         this.selectedTasks.includes(task.name));
             })
             .map(task => {
+                const isActive = this.activeTasks.has(task.name);
+                const status = this.taskStatuses.get(task.name);
+
                 const taskItem = new TaskItem(
                     task.name,
                     task.definition.type,
@@ -69,7 +94,14 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
                     }
                 );
                 
-                if (this.selectedTasks.includes(task.name)) {
+                if (isActive) {
+                    taskItem.description = 'Running...';
+                    taskItem.iconPath = new vscode.ThemeIcon('sync~spin');
+                } else if (status) {
+                    taskItem.description = status;
+                }
+
+                if (isActive || this.selectedTasks.includes(task.name)) {
                     taskItem.resourceUri = vscode.Uri.parse(`task://${task.name}`);
                 }
                 
@@ -89,7 +121,6 @@ class TaskItem extends vscode.TreeItem {
         
         this.label = label;
         this.tooltip = new vscode.MarkdownString(`**Task:** ${label}\n\n**Type:** ${this.taskType}`);
-        this.description = this.taskType;
         this.contextValue = 'task';
         
         const iconName = this.getIconNameFromLabel(label.toLowerCase());

@@ -2,6 +2,14 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.0.6] - 2024-11-26
+
+### Added
+
+- Visual indication for running tasks with a spinning icon
+- Task status messages displaying 'Success' or 'Failed' upon completion
+- Option to clear task statuses when refreshing the task list
+
 ## [0.0.5] - 2024-11-25
 
 ### Added
