@@ -6,6 +6,7 @@ All notable changes to the "Fast Tasks" extension will be documented in this fil
 
 ### Changed
 - Code style
+- Enhanced task tooltips with more detailed information
 
 ## [0.0.8] - 2024-11-26
 

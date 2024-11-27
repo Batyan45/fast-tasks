@@ -126,7 +126,8 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
                 command: 'workbench.action.tasks.runTask',
                 title: '',
                 arguments: [task.name]
-            }
+            },
+            task
         );
 
         if (taskStatus?.isActive) {
@@ -155,18 +156,42 @@ export class TaskItem extends vscode.TreeItem {
         public readonly label: string,
         public readonly taskType: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly command?: vscode.Command
+        public readonly command?: vscode.Command,
+        private readonly task?: vscode.Task
     ) {
         super(label, collapsibleState);
         
         this.label = label;
-        this.tooltip = new vscode.MarkdownString(`**Task:** ${label}\n\n**Type:** ${this.taskType}`);
+        this.tooltip = this.createTooltip();
         this.contextValue = 'task';
         
         const iconName = this.getIconNameFromLabel(label.toLowerCase());
         const iconColor = this.getColorFromTaskType(taskType.toLowerCase());
         
         this.iconPath = new vscode.ThemeIcon(iconName, new vscode.ThemeColor(iconColor));
+    }
+
+    private createTooltip(): vscode.MarkdownString {
+        const tooltip = new vscode.MarkdownString('', true);
+        tooltip.isTrusted = true;
+        tooltip.supportHtml = true;
+
+        tooltip.appendMarkdown(`**Task:** ${this.label}\n\n`);
+        tooltip.appendMarkdown(`**Type:** ${this.taskType}\n\n`);
+
+        if (this.task?.detail) {
+            tooltip.appendMarkdown(`**Detail:** ${this.task.detail}\n\n`);
+        }
+
+        if (this.task?.execution) {
+            if ('commandLine' in this.task.execution) {
+                tooltip.appendMarkdown(`**Command:**\n\`\`\`shell\n${this.task.execution.commandLine}\n\`\`\`\n`);
+            } else if ('args' in this.task.execution) {
+                tooltip.appendMarkdown(`**Arguments:** ${this.task.execution.args?.join(' ') || ''}\n\n`);
+            }
+        }
+
+        return tooltip;
     }
 
     private getIconNameFromLabel(label: string): string {
