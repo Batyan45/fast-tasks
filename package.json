@@ -2,7 +2,7 @@
   "name": "fast-tasks",
   "displayName": "Fast Tasks",
   "description": "Quick access to workspace tasks from explorer sidebar",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "publisher": "batyan-soft",
   "license": "MIT",
   "icon": "images/icon.png",
