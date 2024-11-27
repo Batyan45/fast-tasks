@@ -1,45 +1,74 @@
 import * as vscode from 'vscode';
 
+interface TaskStatus {
+    isActive: boolean;
+    status?: string;
+    execution?: vscode.TaskExecution;
+}
+
+const TASK_ICONS = {
+    debug: 'bug',
+    build: 'package',
+    test: 'beaker',
+    launch: 'rocket',
+    terminal: 'terminal',
+    watch: 'eye',
+    clean: 'trash',
+    deploy: 'cloud-upload',
+    start: 'play',
+    stop: 'stop',
+    publish: 'cloud',
+    default: 'gear'
+} as const;
+
+const TASK_COLORS = {
+    npm: 'charts.red',
+    shell: 'charts.blue',
+    typescript: 'charts.purple',
+    gulp: 'charts.orange',
+    grunt: 'charts.yellow',
+    default: 'charts.yellow'
+} as const;
+
 export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
-    private _onDidChangeTreeData: vscode.EventEmitter<TaskItem | undefined | null | void> = new vscode.EventEmitter<TaskItem | undefined | null | void>();
-    readonly onDidChangeTreeData: vscode.Event<TaskItem | undefined | null | void> = this._onDidChangeTreeData.event;
-    private activeTasks: Map<string, vscode.Task> = new Map();
-    private taskStatuses: Map<string, string> = new Map();
-    private activeExecutions: Map<string, vscode.TaskExecution> = new Map();
+    private readonly _onDidChangeTreeData = new vscode.EventEmitter<TaskItem | undefined | null | void>();
+    readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
+    
+    private readonly taskStatusMap = new Map<string, TaskStatus>();
+    private selectedTasks: string[] = [];
 
-    constructor(private workspaceState: vscode.Memento) {
+    constructor(private readonly workspaceState: vscode.Memento) {
         this.selectedTasks = this.workspaceState.get('selectedTasks', []);
+        this.initializeTaskListeners();
+    }
 
-        // Register task execution listener
+    private initializeTaskListeners(): void {
         vscode.tasks.onDidStartTaskProcess(e => {
             if (e.execution.task) {
-                this.activeTasks.set(e.execution.task.name, e.execution.task);
-                this.activeExecutions.set(e.execution.task.name, e.execution);
+                const { name } = e.execution.task;
+                this.taskStatusMap.set(name, {
+                    isActive: true,
+                    execution: e.execution
+                });
                 this.refresh();
             }
         });
 
         vscode.tasks.onDidEndTaskProcess(e => {
             if (e.execution.task) {
-                const taskName = e.execution.task.name;
-                this.activeTasks.delete(taskName);
-                this.activeExecutions.delete(taskName);
-                this.taskStatuses.set(taskName, e.exitCode === 0 ? 'Success' : 'Failed');
+                const { name } = e.execution.task;
+                this.taskStatusMap.set(name, {
+                    isActive: false,
+                    status: e.exitCode === 0 ? 'Success' : 'Failed'
+                });
                 this.refresh();
             }
         });
     }
 
-    private selectedTasks: string[] = [];
-
     async selectTasks(): Promise<void> {
-        const tasks = await vscode.tasks.fetchTasks();
-        const configuredTasks = tasks.filter(task => 
-            task.source === 'Workspace' || 
-            (task as any)._source?.kind === 2 // TaskSourceKind.WorkspaceFile = 2
-        );
-        
-        const taskItems = configuredTasks.map(task => ({
+        const tasks = await this.getConfiguredTasks();
+        const taskItems = tasks.map(task => ({
             label: task.name,
             picked: this.selectedTasks.includes(task.name)
         }));
@@ -58,7 +87,7 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
 
     refresh(clearStatuses = false): void {
         if (clearStatuses) {
-            this.taskStatuses.clear();
+            this.taskStatusMap.clear();
         }
         this._onDidChangeTreeData.fire();
     }
@@ -67,57 +96,57 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
         return element;
     }
 
-    async getChildren(element?: TaskItem): Promise<TaskItem[]> {
+    async getChildren(): Promise<TaskItem[]> {
         if (!vscode.workspace.workspaceFolders) {
-            return Promise.resolve([]);
+            return [];
         }
 
+        const tasks = await this.getConfiguredTasks();
+        return tasks.map(task => this.createTaskItem(task));
+    }
+
+    private async getConfiguredTasks(): Promise<vscode.Task[]> {
         const tasks = await vscode.tasks.fetchTasks();
-        
-        return tasks
-            .filter(task => {
-                const isConfigured = task.source === 'Workspace' || 
-                                   (task as any)._source?.kind === 2; // TaskSourceKind.WorkspaceFile = 2
-                return isConfigured && 
-                       (this.selectedTasks.length === 0 || 
-                        this.selectedTasks.includes(task.name));
-            })
-            .map(task => {
-                const isActive = this.activeTasks.has(task.name);
-                const status = this.taskStatuses.get(task.name);
+        return tasks.filter(task => {
+            const isConfigured = task.source === 'Workspace' || 
+                               (task as any)._source?.kind === 2;
+            return isConfigured && 
+                   (this.selectedTasks.length === 0 || 
+                    this.selectedTasks.includes(task.name));
+        });
+    }
 
-                const taskItem = new TaskItem(
-                    task.name,
-                    task.definition.type,
-                    vscode.TreeItemCollapsibleState.None,
-                    {
-                        command: 'workbench.action.tasks.runTask',
-                        title: '',
-                        arguments: [task.name]
-                    }
-                );
-                
-                if (isActive) {
-                    taskItem.description = 'Running...';
-                    taskItem.iconPath = new vscode.ThemeIcon('sync~spin');
-                    taskItem.contextValue = 'runningTask';
-                } else if (status) {
-                    taskItem.description = status;
-                }
+    private createTaskItem(task: vscode.Task): TaskItem {
+        const taskStatus = this.taskStatusMap.get(task.name);
+        const taskItem = new TaskItem(
+            task.name,
+            task.definition.type,
+            vscode.TreeItemCollapsibleState.None,
+            {
+                command: 'workbench.action.tasks.runTask',
+                title: '',
+                arguments: [task.name]
+            }
+        );
 
-                if (isActive || this.selectedTasks.includes(task.name)) {
-                    taskItem.resourceUri = vscode.Uri.parse(`task://${task.name}`);
-                }
-                
-                return taskItem;
-            });
+        if (taskStatus?.isActive) {
+            taskItem.description = 'Running...';
+            taskItem.iconPath = new vscode.ThemeIcon('sync~spin');
+            taskItem.contextValue = 'runningTask';
+        } else if (taskStatus?.status) {
+            taskItem.description = taskStatus.status;
+        }
+
+        if (taskStatus?.isActive || this.selectedTasks.includes(task.name)) {
+            taskItem.resourceUri = vscode.Uri.parse(`task://${task.name}`);
+        }
+
+        return taskItem;
     }
 
     async stopTask(item: TaskItem): Promise<void> {
-        const execution = this.activeExecutions.get(item.label);
-        if (execution) {
-            execution.terminate();
-        }
+        const taskStatus = this.taskStatusMap.get(item.label);
+        taskStatus?.execution?.terminate();
     }
 }
 
@@ -141,26 +170,26 @@ export class TaskItem extends vscode.TreeItem {
     }
 
     private getIconNameFromLabel(label: string): string {
-        if (label.includes('debug')) { return 'bug'; }
-        if (label.includes('build')) { return 'package'; }
-        if (label.includes('test')) { return 'beaker'; }
-        if (label.includes('launch')) { return 'rocket'; }
-        if (label.includes('terminal')) { return 'terminal'; }
-        if (label.includes('watch')) { return 'eye'; }
-        if (label.includes('clean')) { return 'trash'; }
-        if (label.includes('deploy')) { return 'cloud-upload'; }
-        if (label.includes('start')) { return 'play'; }
-        if (label.includes('stop')) { return 'stop'; }
-        if (label.includes('publish')) { return 'cloud'; }
-        return 'gear'; // default icon
+        if (label.includes('debug')) { return TASK_ICONS.debug; }
+        if (label.includes('build')) { return TASK_ICONS.build; }
+        if (label.includes('test')) { return TASK_ICONS.test; }
+        if (label.includes('launch')) { return TASK_ICONS.launch; }
+        if (label.includes('terminal')) { return TASK_ICONS.terminal; }
+        if (label.includes('watch')) { return TASK_ICONS.watch; }
+        if (label.includes('clean')) { return TASK_ICONS.clean; }
+        if (label.includes('deploy')) { return TASK_ICONS.deploy; }
+        if (label.includes('start')) { return TASK_ICONS.start; }
+        if (label.includes('stop')) { return TASK_ICONS.stop; }
+        if (label.includes('publish')) { return TASK_ICONS.publish; }
+        return TASK_ICONS.default; // default icon
     }
 
     private getColorFromTaskType(taskType: string): string {
-        if (taskType.includes('npm')) { return 'charts.red'; }
-        if (taskType.includes('shell')) { return 'charts.blue'; }
-        if (taskType.includes('typescript')) { return 'charts.purple'; }
-        if (taskType.includes('gulp')) { return 'charts.orange'; }
-        if (taskType.includes('grunt')) { return 'charts.yellow'; }
-        return 'charts.yellow'; // default color
+        if (taskType.includes('npm')) { return TASK_COLORS.npm; }
+        if (taskType.includes('shell')) { return TASK_COLORS.shell; }
+        if (taskType.includes('typescript')) { return TASK_COLORS.typescript; }
+        if (taskType.includes('gulp')) { return TASK_COLORS.gulp; }
+        if (taskType.includes('grunt')) { return TASK_COLORS.grunt; }
+        return TASK_COLORS.default; // default color
     }
 }

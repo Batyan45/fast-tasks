@@ -2,6 +2,11 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.0.9] - 2024-11-27
+
+### Changed
+- Code style
+
 ## [0.0.8] - 2024-11-26
 
 ### Changed
