@@ -66,9 +66,17 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
         });
     }
 
+    private async getAllAvailableTasks(): Promise<vscode.Task[]> {
+        const tasks = await vscode.tasks.fetchTasks();
+        return tasks.filter(task => 
+            task.source === 'Workspace' || 
+            (task as any)._source?.kind === 2
+        );
+    }
+
     async selectTasks(): Promise<void> {
-        const tasks = await this.getConfiguredTasks();
-        const taskItems = tasks.map(task => ({
+        const allTasks = await this.getAllAvailableTasks();
+        const taskItems = allTasks.map(task => ({
             label: task.name,
             picked: this.selectedTasks.includes(task.name)
         }));
@@ -106,14 +114,11 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
     }
 
     private async getConfiguredTasks(): Promise<vscode.Task[]> {
-        const tasks = await vscode.tasks.fetchTasks();
-        return tasks.filter(task => {
-            const isConfigured = task.source === 'Workspace' || 
-                               (task as any)._source?.kind === 2;
-            return isConfigured && 
-                   (this.selectedTasks.length === 0 || 
-                    this.selectedTasks.includes(task.name));
-        });
+        const tasks = await this.getAllAvailableTasks();
+        return tasks.filter(task => 
+            this.selectedTasks.length === 0 || 
+            this.selectedTasks.includes(task.name)
+        );
     }
 
     private createTaskItem(task: vscode.Task): TaskItem {

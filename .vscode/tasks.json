@@ -102,7 +102,18 @@
                 "panel": "shared"
             },
             "problemMatcher": []
-        }
+        },
+        {
+			"label": "Run Tests",
+			"type": "npm",
+			"script": "test",
+			"group": "test",
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		}
 	],
 	"inputs": [
 		{

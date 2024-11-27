@@ -2,6 +2,11 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.0.10] - 2024-11-27
+
+### Fixed
+- Task selection now shows all available workspace tasks instead of only previously selected ones
+
 ## [0.0.9] - 2024-11-27
 
 ### Changed
