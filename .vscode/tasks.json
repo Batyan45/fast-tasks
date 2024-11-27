@@ -84,6 +84,16 @@
             "problemMatcher": []
         },
         {
+            "label": "VSCODE publish marketplace",
+            "type": "shell",
+            "command": "vsce publish",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "VSCODE build",
             "type": "shell",
             "command": "vsce package",
