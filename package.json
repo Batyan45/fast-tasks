@@ -1,7 +1,7 @@
 {
   "name": "fast-tasks",
   "displayName": "Fast Tasks",
-  "description": "Quick access to workspace tasks from explorer sidebar",
+  "description": "Quick access to workspace tasks from explorer sidebar with enhanced performance and visual feedback",
   "version": "0.0.10",
   "publisher": "batyan-soft",
   "license": "MIT",
@@ -12,6 +12,17 @@
   "categories": [
     "Other",
     "Programming Languages"
+  ],
+  "keywords": [
+    "tasks",
+    "task runner",
+    "workspace",
+    "productivity",
+    "build",
+    "test",
+    "npm",
+    "shell",
+    "typescript"
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",

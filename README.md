@@ -6,8 +6,18 @@ Fast Tasks is a VS Code extension that provides quick access to your workspace t
 
 ![Fast Tasks Check](https://raw.githubusercontent.com/Batyan45/fast-tasks/main/images/fast-tasks-check.gif)
 
+## Installation
+
+1. Open Visual Studio Code
+2. Press `Ctrl+P` to open the Quick Open dialog
+3. Type `ext install batyan-soft.fast-tasks` to find the extension
+4. Click Install
+
+Or install it from the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=batyan-soft.fast-tasks).
+
 ## Features
 
+### Core Features
 - Automatic task execution on click from the explorer view
 - Enhanced task view with color-coded icons
 - Visual status updates for running, successful, or failed tasks (with exit codes)
@@ -16,35 +26,36 @@ Fast Tasks is a VS Code extension that provides quick access to your workspace t
 - Task filtering and selection
 - Optimized performance with task caching
 - Robust error handling and recovery
+- Stop button for running tasks
 
-## Visual Features
+### Visual Features
 
-- **Task Type Colors**: Different task types are represented by distinct colors
-  - 🔴 NPM tasks
-  - 🔵 Shell tasks
-  - 🟣 TypeScript tasks
-  - 🟡 Other tasks (default)
+#### Task Type Colors
+- 🔴 NPM tasks
+- 🔵 Shell tasks
+- 🟣 TypeScript tasks
+- 🟡 Other tasks (default)
 
-- **Task-specific Icons**: Icons are chosen based on task names (with optimized lookup)
-  - 📦 Build tasks
-  - 🧪 Test tasks
-  - 🚀 Launch tasks
-  - 🐛 Debug tasks
-  - 👁️ Watch tasks
-  - 🗑️ Clean tasks
-  - ☁️ Deploy tasks
-  - ▶️ Start tasks
-  - ⏹️ Stop tasks
-  - ☁️ Publish tasks
-  - ⚙️ Other tasks (default)
+#### Task-specific Icons
+- 📦 Build tasks
+- 🧪 Test tasks
+- 🚀 Launch tasks
+- 🐛 Debug tasks
+- 👁️ Watch tasks
+- 🗑️ Clean tasks
+- ☁️ Deploy tasks
+- ▶️ Start tasks
+- ⏹️ Stop tasks
+- ☁️ Publish tasks
+- ⚙️ Other tasks (default)
 
-- **Rich Tooltips**: Detailed task information on hover with error recovery
-- **Selected Task Highlighting**: Visual indication of your selected tasks
-- **Clean Interface**: Organized and intuitive task view
-- **Enhanced Status**: Detailed task status with exit codes
+#### Rich Tooltips
+- Detailed task information on hover with error recovery
+- Selected Task Highlighting
+- Clean Interface
+- Enhanced Status
 
-## Performance Features
-
+### Performance Features
 - Task caching for faster updates
 - Optimized icon and color lookups
 - Efficient task status tracking
@@ -59,11 +70,35 @@ Fast Tasks is a VS Code extension that provides quick access to your workspace t
 5. View the task status as 'Running...', 'Success', or 'Failed (with exit code)'
 6. Use the refresh button to update the task list and clear task statuses
 
+### Keyboard Shortcuts
+- `Ctrl+Shift+P` or `Cmd+Shift+P` (Mac) and type "Fast Tasks" to see all available commands
+- Use arrow keys to navigate through tasks
+- Press `Enter` to run a selected task
+- Press `Esc` to stop a running task
+
 ## Requirements
 
 - Visual Studio Code version 1.80.0 or higher
 - A workspace with defined tasks (in tasks.json or workspace files)
 
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+## Known Issues
+
+Please report any issues on the [GitHub issues page](https://github.com/Batyan45/fast-tasks/issues).
+
+## Release Notes
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
