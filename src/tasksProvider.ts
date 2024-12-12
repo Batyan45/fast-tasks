@@ -30,12 +30,20 @@ const TASK_COLORS = {
     default: 'charts.yellow'
 } as const;
 
+// Improved type safety with literal types
+type TaskIconType = keyof typeof TASK_ICONS;
+type TaskColorType = keyof typeof TASK_COLORS;
+
+// Cache timeout in milliseconds
+const CACHE_TIMEOUT = 5000;
+
 export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
     private readonly _onDidChangeTreeData = new vscode.EventEmitter<TaskItem | undefined | null | void>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
     
     private readonly taskStatusMap = new Map<string, TaskStatus>();
     private selectedTasks: string[] = [];
+    private taskCache: { tasks: vscode.Task[]; timestamp: number } | null = null;
 
     constructor(private readonly workspaceState: vscode.Memento) {
         this.selectedTasks = this.workspaceState.get('selectedTasks', []);
@@ -43,35 +51,58 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
     }
 
     private initializeTaskListeners(): void {
-        vscode.tasks.onDidStartTaskProcess(e => {
-            if (e.execution.task) {
-                const { name } = e.execution.task;
-                this.taskStatusMap.set(name, {
-                    isActive: true,
-                    execution: e.execution
-                });
-                this.refresh();
-            }
-        });
+        try {
+            vscode.tasks.onDidStartTaskProcess(e => {
+                if (e.execution.task) {
+                    const { name } = e.execution.task;
+                    this.taskStatusMap.set(name, {
+                        isActive: true,
+                        execution: e.execution
+                    });
+                    this.refresh();
+                }
+            });
 
-        vscode.tasks.onDidEndTaskProcess(e => {
-            if (e.execution.task) {
-                const { name } = e.execution.task;
-                this.taskStatusMap.set(name, {
-                    isActive: false,
-                    status: e.exitCode === 0 ? 'Success' : 'Failed'
-                });
-                this.refresh();
-            }
-        });
+            vscode.tasks.onDidEndTaskProcess(e => {
+                if (e.execution.task) {
+                    const { name } = e.execution.task;
+                    this.taskStatusMap.set(name, {
+                        isActive: false,
+                        status: e.exitCode === 0 ? 'Success' : `Failed (${e.exitCode})`
+                    });
+                    this.refresh();
+                }
+            });
+        } catch (error) {
+            console.error('Failed to initialize task listeners:', error);
+            void vscode.window.showErrorMessage('Failed to initialize task listeners');
+        }
     }
 
     private async getAllAvailableTasks(): Promise<vscode.Task[]> {
-        const tasks = await vscode.tasks.fetchTasks();
-        return tasks.filter(task => 
-            task.source === 'Workspace' || 
-            (task as any)._source?.kind === 2
-        );
+        try {
+            // Check cache first
+            if (this.taskCache && Date.now() - this.taskCache.timestamp < CACHE_TIMEOUT) {
+                return this.taskCache.tasks;
+            }
+
+            const tasks = await vscode.tasks.fetchTasks();
+            const filteredTasks = tasks.filter(task => 
+                task.source === 'Workspace' || 
+                (task as any)._source?.kind === 2
+            );
+
+            // Update cache
+            this.taskCache = {
+                tasks: filteredTasks,
+                timestamp: Date.now()
+            };
+
+            return filteredTasks;
+        } catch (error) {
+            console.error('Failed to fetch tasks:', error);
+            return [];
+        }
     }
 
     async selectTasks(): Promise<void> {
@@ -157,6 +188,16 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
 }
 
 export class TaskItem extends vscode.TreeItem {
+    // Map for faster icon lookup
+    private static readonly iconMap = new Map(
+        Object.entries(TASK_ICONS).map(([key, value]) => [key, value])
+    );
+
+    // Map for faster color lookup
+    private static readonly colorMap = new Map(
+        Object.entries(TASK_COLORS).map(([key, value]) => [key, value])
+    );
+
     constructor(
         public readonly label: string,
         public readonly taskType: string,
@@ -177,49 +218,50 @@ export class TaskItem extends vscode.TreeItem {
     }
 
     private createTooltip(): vscode.MarkdownString {
-        const tooltip = new vscode.MarkdownString('', true);
-        tooltip.isTrusted = true;
-        tooltip.supportHtml = true;
+        try {
+            const tooltip = new vscode.MarkdownString('', true);
+            tooltip.isTrusted = true;
+            tooltip.supportHtml = true;
 
-        tooltip.appendMarkdown(`**Task:** ${this.label}\n\n`);
-        tooltip.appendMarkdown(`**Type:** ${this.taskType}\n\n`);
+            tooltip.appendMarkdown(`**Task:** ${this.label}\n\n`);
+            tooltip.appendMarkdown(`**Type:** ${this.taskType}\n\n`);
 
-        if (this.task?.detail) {
-            tooltip.appendMarkdown(`**Detail:** ${this.task.detail}\n\n`);
-        }
-
-        if (this.task?.execution) {
-            if ('commandLine' in this.task.execution) {
-                tooltip.appendMarkdown(`**Command:**\n\`\`\`shell\n${this.task.execution.commandLine}\n\`\`\`\n`);
-            } else if ('args' in this.task.execution) {
-                tooltip.appendMarkdown(`**Arguments:** ${this.task.execution.args?.join(' ') || ''}\n\n`);
+            if (this.task?.detail) {
+                tooltip.appendMarkdown(`**Detail:** ${this.task.detail}\n\n`);
             }
-        }
 
-        return tooltip;
+            if (this.task?.execution) {
+                if ('commandLine' in this.task.execution) {
+                    tooltip.appendMarkdown(`**Command:**\n\`\`\`shell\n${this.task.execution.commandLine}\n\`\`\`\n`);
+                } else if ('args' in this.task.execution) {
+                    tooltip.appendMarkdown(`**Arguments:** ${this.task.execution.args?.join(' ') || ''}\n\n`);
+                }
+            }
+
+            return tooltip;
+        } catch (error) {
+            console.error('Failed to create tooltip:', error);
+            return new vscode.MarkdownString(`Task: ${this.label}`);
+        }
     }
 
     private getIconNameFromLabel(label: string): string {
-        if (label.includes('debug')) { return TASK_ICONS.debug; }
-        if (label.includes('build')) { return TASK_ICONS.build; }
-        if (label.includes('test')) { return TASK_ICONS.test; }
-        if (label.includes('launch')) { return TASK_ICONS.launch; }
-        if (label.includes('terminal')) { return TASK_ICONS.terminal; }
-        if (label.includes('watch')) { return TASK_ICONS.watch; }
-        if (label.includes('clean')) { return TASK_ICONS.clean; }
-        if (label.includes('deploy')) { return TASK_ICONS.deploy; }
-        if (label.includes('start')) { return TASK_ICONS.start; }
-        if (label.includes('stop')) { return TASK_ICONS.stop; }
-        if (label.includes('publish')) { return TASK_ICONS.publish; }
-        return TASK_ICONS.default; // default icon
+        // Use Map for O(1) lookup instead of multiple if statements
+        for (const [key, value] of TaskItem.iconMap) {
+            if (label.includes(key)) {
+                return value;
+            }
+        }
+        return TASK_ICONS.default;
     }
 
     private getColorFromTaskType(taskType: string): string {
-        if (taskType.includes('npm')) { return TASK_COLORS.npm; }
-        if (taskType.includes('shell')) { return TASK_COLORS.shell; }
-        if (taskType.includes('typescript')) { return TASK_COLORS.typescript; }
-        if (taskType.includes('gulp')) { return TASK_COLORS.gulp; }
-        if (taskType.includes('grunt')) { return TASK_COLORS.grunt; }
-        return TASK_COLORS.default; // default color
+        // Use Map for O(1) lookup instead of multiple if statements
+        for (const [key, value] of TaskItem.colorMap) {
+            if (taskType.includes(key)) {
+                return value;
+            }
+        }
+        return TASK_COLORS.default;
     }
 }

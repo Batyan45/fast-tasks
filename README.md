@@ -1,6 +1,6 @@
 # Fast Tasks
 
-Fast Tasks is a VS Code extension that provides quick access to your workspace tasks directly from the explorer view.
+Fast Tasks is a VS Code extension that provides quick access to your workspace tasks directly from the explorer view, with optimized performance and enhanced error handling.
 
 ![Fast Tasks View](https://raw.githubusercontent.com/Batyan45/fast-tasks/main/images/fast-tasks-view.gif)
 
@@ -10,10 +10,12 @@ Fast Tasks is a VS Code extension that provides quick access to your workspace t
 
 - Automatic task execution on click from the explorer view
 - Enhanced task view with color-coded icons
-- Visual status updates for running, successful, or failed tasks
-- Rich task information display
-- Quick task refresh capability
+- Visual status updates for running, successful, or failed tasks (with exit codes)
+- Rich task information display with error recovery
+- Quick task refresh capability with caching
 - Task filtering and selection
+- Optimized performance with task caching
+- Robust error handling and recovery
 
 ## Visual Features
 
@@ -23,7 +25,7 @@ Fast Tasks is a VS Code extension that provides quick access to your workspace t
   - 🟣 TypeScript tasks
   - 🟡 Other tasks (default)
 
-- **Task-specific Icons**: Icons are chosen based on task names
+- **Task-specific Icons**: Icons are chosen based on task names (with optimized lookup)
   - 📦 Build tasks
   - 🧪 Test tasks
   - 🚀 Launch tasks
@@ -36,9 +38,17 @@ Fast Tasks is a VS Code extension that provides quick access to your workspace t
   - ☁️ Publish tasks
   - ⚙️ Other tasks (default)
 
-- **Rich Tooltips**: Detailed task information on hover
+- **Rich Tooltips**: Detailed task information on hover with error recovery
 - **Selected Task Highlighting**: Visual indication of your selected tasks
 - **Clean Interface**: Organized and intuitive task view
+- **Enhanced Status**: Detailed task status with exit codes
+
+## Performance Features
+
+- Task caching for faster updates
+- Optimized icon and color lookups
+- Efficient task status tracking
+- Memory-efficient operation
 
 ## Usage
 
@@ -46,7 +56,7 @@ Fast Tasks is a VS Code extension that provides quick access to your workspace t
 2. Click the selection button (list icon) to choose which tasks to display
 3. Select tasks you want to see in the view
 4. Click on any task to run it; the task will be highlighted while running
-5. View the task status as 'Running...', 'Success', or 'Failed'
+5. View the task status as 'Running...', 'Success', or 'Failed (with exit code)'
 6. Use the refresh button to update the task list and clear task statuses
 
 ## Requirements

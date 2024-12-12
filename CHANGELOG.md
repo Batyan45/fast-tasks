@@ -2,6 +2,14 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.0.11] - 2024-12-10
+
+### Added
+- Task caching mechanism to improve performance
+- Better error handling with detailed error messages
+- Enhanced exit code reporting in task status
+
+
 ## [0.0.10] - 2024-11-27
 
 ### Fixed
