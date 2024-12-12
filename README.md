@@ -61,6 +61,13 @@ Or install it from the [Visual Studio Code Marketplace](https://marketplace.visu
 - Efficient task status tracking
 - Memory-efficient operation
 
+## Planned Features
+
+- Task favorites/pinning functionality
+- Task search and filtering capabilities
+- Task execution history tracking
+- Task dependencies visualization
+
 ## Usage
 
 1. Locate the Tasks section in the Explorer view
