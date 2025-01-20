@@ -159,9 +159,9 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
             task.definition.type,
             vscode.TreeItemCollapsibleState.None,
             {
-                command: 'workbench.action.tasks.runTask',
+                command: 'fast-tasks.runTask',
                 title: '',
-                arguments: [task.name]
+                arguments: [task]
             },
             task
         );
@@ -202,8 +202,8 @@ export class TaskItem extends vscode.TreeItem {
         public readonly label: string,
         public readonly taskType: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly command?: vscode.Command,
-        private readonly task?: vscode.Task
+        public readonly command: vscode.Command,
+        public readonly task: vscode.Task
     ) {
         super(label, collapsibleState);
         
