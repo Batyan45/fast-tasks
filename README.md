@@ -47,7 +47,30 @@ Or install it from the [Visual Studio Code Marketplace](https://marketplace.visu
 - ▶️ Start tasks
 - ⏹️ Stop tasks
 - ☁️ Publish tasks
+- 🏃 Run tasks
 - ⚙️ Other tasks (default)
+
+#### Custom Icons (New!)
+
+You can now define custom icons for your tasks directly in your `tasks.json` file. These custom icons will take priority over the automatically assigned icons.
+
+To use a custom icon, add an `icon` object to your task definition with an `id` and an optional `color`:
+
+```json
+{
+  "label": "build:project",
+  "type": "shell",
+  "command": "make build",
+  "icon": {
+    "id": "package", // Any valid Codicon ID
+    "color": "charts.blue" // Optional: any valid ThemeColor ID
+  },
+  "group": "build"
+}
+```
+
+- The `id` should be a valid [Codicon ID](https://microsoft.github.io/vscode-codicons/dist/codicon.html).
+- The `color` (optional) should be a valid [ThemeColor ID](https://code.visualstudio.com/api/references/theme-color).
 
 #### Rich Tooltips
 - Detailed task information on hover with error recovery

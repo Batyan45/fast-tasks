@@ -2,6 +2,12 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.0.12] - 2025-05-16
+
+### Added
+- Custom icons support for tasks in tasks.json
+- New icon for "run" tasks
+
 ## [0.0.11] - 2024-12-10
 
 ### Added
