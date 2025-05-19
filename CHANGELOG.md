@@ -2,6 +2,11 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.0.13] - 2025-05-19
+
+### Fixed
+- Support comments in tasks.json via jsonc-parser (contributed by mitchellaha)
+
 ## [0.0.12] - 2025-05-16
 
 ### Added
