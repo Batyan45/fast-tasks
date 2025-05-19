@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as JSONC from 'jsonc-parser';
 
 interface TaskStatus {
     isActive: boolean;
@@ -123,7 +124,7 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
     private loadIconsFromTasksFile(filePath: string): void {
         try {
             const content = fs.readFileSync(filePath, 'utf8');
-            const tasksConfig = JSON.parse(content);
+            const tasksConfig = JSONC.parse(content);
             
             // Get the workspace folder this tasks.json belongs to
             const workspaceFolder = vscode.workspace.workspaceFolders?.find(folder => 

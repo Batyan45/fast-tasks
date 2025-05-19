@@ -32,6 +32,7 @@ async function main() {
 		entryPoints: [
 			'src/extension.ts'
 		],
+		mainFields: ["module", "main"],
 		bundle: true,
 		format: 'cjs',
 		minify: production,
