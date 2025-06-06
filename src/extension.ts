@@ -4,7 +4,8 @@ import { TasksProvider, TaskItem } from './tasksProvider';
 const COMMANDS = {
     refreshTasks: 'fast-tasks.refreshTasks',
     selectTasks: 'fast-tasks.selectTasks',
-    stopTask: 'fast-tasks.stopTask'
+    stopTask: 'fast-tasks.stopTask',
+    editTask: 'fast-tasks.editTask'
 } as const;
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -34,6 +35,10 @@ function registerCommands(tasksProvider: TasksProvider): vscode.Disposable[] {
         vscode.commands.registerCommand(
             COMMANDS.stopTask, 
             (item: TaskItem) => tasksProvider.stopTask(item)
+        ),
+        vscode.commands.registerCommand(
+            COMMANDS.editTask,
+            (item: TaskItem) => tasksProvider.editTask(item)
         )
     ];
 }
