@@ -49,6 +49,11 @@
         "command": "fast-tasks.stopTask",
         "title": "Stop Task",
         "icon": "$(stop)"
+      },
+      {
+        "command": "fast-tasks.editTask",
+        "title": "Edit Task",
+        "icon": "$(edit)"
       }
     ],
     "views": {
@@ -77,6 +82,11 @@
         {
           "command": "fast-tasks.stopTask",
           "when": "view == fastTasksView && viewItem == runningTask",
+          "group": "inline"
+        },
+        {
+          "command": "fast-tasks.editTask",
+          "when": "view == fastTasksView && viewItem == task",
           "group": "inline"
         }
       ]
