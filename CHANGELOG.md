@@ -2,7 +2,7 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
-## [0.0.14] - 2025-06-06
+## [0.1.0] - 2025-06-06
 
 ### Added
 - Edit Task button - inline icon to open task definition in tasks.json
