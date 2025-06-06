@@ -2,7 +2,7 @@
   "name": "fast-tasks",
   "displayName": "Fast Tasks",
   "description": "Quick access to workspace tasks from explorer sidebar with enhanced performance and visual feedback",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "publisher": "batyan-soft",
   "license": "MIT",
   "icon": "images/icon.png",
@@ -49,6 +49,11 @@
         "command": "fast-tasks.stopTask",
         "title": "Stop Task",
         "icon": "$(stop)"
+      },
+      {
+        "command": "fast-tasks.editTask",
+        "title": "Edit Task",
+        "icon": "$(edit)"
       }
     ],
     "views": {
@@ -77,6 +82,11 @@
         {
           "command": "fast-tasks.stopTask",
           "when": "view == fastTasksView && viewItem == runningTask",
+          "group": "inline"
+        },
+        {
+          "command": "fast-tasks.editTask",
+          "when": "view == fastTasksView && viewItem == task",
           "group": "inline"
         }
       ]

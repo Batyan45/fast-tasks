@@ -54,6 +54,7 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
     private selectedTasks: string[] = [];
     private taskCache: { tasks: vscode.Task[]; timestamp: number } | null = null;
     private taskIconMap: Map<string, CustomIcon> = new Map();
+    private taskLocationMap: Map<string, { filePath: string; line: number }> = new Map();
 
     constructor(private readonly workspaceState: vscode.Memento) {
         this.selectedTasks = this.workspaceState.get('selectedTasks', []);
@@ -94,6 +95,7 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
         try {
             // Clear existing mappings
             this.taskIconMap.clear();
+            this.taskLocationMap.clear();
             
             // Find tasks.json files in all workspace folders
             if (vscode.workspace.workspaceFolders) {
@@ -125,32 +127,46 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
         try {
             const content = fs.readFileSync(filePath, 'utf8');
             const tasksConfig = JSONC.parse(content);
-            
+            const tree = JSONC.parseTree(content);
+            const tasksArrayNode = tree ? JSONC.findNodeAtLocation(tree, ['tasks']) : undefined;
+
             // Get the workspace folder this tasks.json belongs to
-            const workspaceFolder = vscode.workspace.workspaceFolders?.find(folder => 
+            const workspaceFolder = vscode.workspace.workspaceFolders?.find(folder =>
                 filePath.startsWith(folder.uri.fsPath)
             );
             const workspaceName = workspaceFolder?.name || '';
-            
+
             if (tasksConfig.tasks && Array.isArray(tasksConfig.tasks)) {
-                for (const taskDef of tasksConfig.tasks) {
+                tasksConfig.tasks.forEach((taskDef: any, index: number) => {
                     if (taskDef.label && taskDef.icon) {
                         // Use a combination of workspace name and task label as the map key
                         // This prevents conflicts between tasks with the same name in different projects
                         const mapKey = workspaceName ? `${workspaceName}:${taskDef.label}` : taskDef.label;
-                        
+
                         this.taskIconMap.set(mapKey, {
                             id: taskDef.icon.id,
                             color: taskDef.icon.color
                         });
-                        
+
                         // Also set with just the task name as fallback
                         this.taskIconMap.set(taskDef.label, {
                             id: taskDef.icon.id,
                             color: taskDef.icon.color
                         });
                     }
-                }
+
+                    const label = taskDef.label ?? taskDef.taskName;
+                    if (label && tasksArrayNode && tasksArrayNode.children) {
+                        const taskNode = tasksArrayNode.children[index];
+                        const labelNode = JSONC.findNodeAtLocation(taskNode, ['label']) ||
+                            JSONC.findNodeAtLocation(taskNode, ['taskName']);
+                        const offset = labelNode ? labelNode.offset : taskNode.offset;
+                        const line = content.slice(0, offset).split(/\r?\n/).length - 1;
+                        const mapKey = workspaceName ? `${workspaceName}:${label}` : label;
+                        this.taskLocationMap.set(mapKey, { filePath, line });
+                        this.taskLocationMap.set(label, { filePath, line });
+                    }
+                });
             }
         } catch (error) {
             console.error(`Error loading icons from ${filePath}:`, error);
@@ -301,6 +317,27 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
         const taskStatus = this.taskStatusMap.get(item.label);
         taskStatus?.execution?.terminate();
     }
+
+    async editTask(item: TaskItem): Promise<void> {
+        let workspaceName = '';
+        if (item.task?.scope && typeof item.task.scope === 'object' && 'name' in item.task.scope) {
+            workspaceName = item.task.scope.name;
+        }
+
+        const key = workspaceName ? `${workspaceName}:${item.label}` : item.label;
+        const location = this.taskLocationMap.get(key) ?? this.taskLocationMap.get(item.label);
+
+        if (!location) {
+            void vscode.window.showWarningMessage('Task definition not found');
+            return;
+        }
+
+        const doc = await vscode.workspace.openTextDocument(location.filePath);
+        const editor = await vscode.window.showTextDocument(doc);
+        const position = new vscode.Position(location.line, 0);
+        editor.selection = new vscode.Selection(position, position);
+        editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+    }
 }
 
 export class TaskItem extends vscode.TreeItem {
@@ -319,7 +356,7 @@ export class TaskItem extends vscode.TreeItem {
         public readonly taskType: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly command?: vscode.Command,
-        private readonly task?: vscode.Task,
+        public readonly task?: vscode.Task,
         private readonly customIcon?: CustomIcon
     ) {
         super(label, collapsibleState);

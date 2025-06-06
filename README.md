@@ -27,6 +27,7 @@ Or install it from the [Visual Studio Code Marketplace](https://marketplace.visu
 - Optimized performance with task caching
 - Robust error handling and recovery
 - Stop button for running tasks
+- Edit icon button to quickly open task definition in tasks.json file
 
 ### Visual Features
 
@@ -99,6 +100,9 @@ To use a custom icon, add an `icon` object to your task definition with an `id` 
 4. Click on any task to run it; the task will be highlighted while running
 5. View the task status as 'Running...', 'Success', or 'Failed (with exit code)'
 6. Use the refresh button to update the task list and clear task statuses
+7. **Use inline action buttons that appear next to task names:**
+   - **Edit Task** (pencil icon) - Click to open the tasks.json file at the exact location where the task is defined
+   - **Stop Task** (stop icon) - Available for running tasks to terminate execution
 
 ### Keyboard Shortcuts
 - `Ctrl+Shift+P` or `Cmd+Shift+P` (Mac) and type "Fast Tasks" to see all available commands
