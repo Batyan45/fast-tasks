@@ -2,6 +2,11 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.1.3] - 2025-09-02
+
+### Added
+- Quick Pick: show workspace folder name as a small description next to each task when multiple workspace folders are open
+
 ## [0.1.2] - 2025-09-01
 
 ### Changed

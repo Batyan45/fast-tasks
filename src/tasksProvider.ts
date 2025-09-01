@@ -201,10 +201,19 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
     async selectTasks(): Promise<void> {
         const allTasks = await this.getAllAvailableTasks();
-        const taskItems = allTasks.map(task => ({
-            label: task.name,
-            picked: this.selectedTasks.includes(task.name)
-        }));
+        const hasMultipleWorkspaces = (vscode.workspace.workspaceFolders?.length || 0) > 1;
+        const taskItems = allTasks.map(task => {
+            let workspaceName = '';
+            if (task.scope && typeof task.scope === 'object' && 'name' in task.scope) {
+                workspaceName = (task.scope as vscode.WorkspaceFolder).name;
+            }
+
+            return {
+                label: task.name,
+                description: hasMultipleWorkspaces && workspaceName ? workspaceName : undefined,
+                picked: this.selectedTasks.includes(task.name)
+            } as vscode.QuickPickItem & { picked: boolean };
+        });
 
         const selected = await vscode.window.showQuickPick(taskItems, {
             canPickMany: true,
