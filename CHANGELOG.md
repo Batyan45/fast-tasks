@@ -2,6 +2,11 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.1.2] - 2025-09-01
+
+### Changed
+- Update GitHub Actions to use Node.js 20.x
+
 ## [0.1.1] - 2025-09-01
 
 ### Added
