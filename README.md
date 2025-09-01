@@ -28,6 +28,7 @@ Or install it from the [Visual Studio Code Marketplace](https://marketplace.visu
 - Robust error handling and recovery
 - Stop button for running tasks
 - Edit icon button to quickly open task definition in tasks.json file
+- Multi-root workspace support with optional grouping
 
 ### Visual Features
 
@@ -79,6 +80,13 @@ To use a custom icon, add an `icon` object to your task definition with an `id` 
 - Clean Interface
 - Enhanced Status
 
+### Multi-root Workspaces
+
+- By default, when multiple workspace folders are open, tasks are grouped by workspace.
+- You can switch to a single flat list via the setting: `Fast Tasks › Flat List`.
+- In flat list mode (and only then), task labels include the workspace prefix: `Folder / Task`.
+- When there is only one workspace folder, the view is always flat (no grouping).
+
 ### Performance Features
 - Task caching for faster updates
 - Optimized icon and color lookups
@@ -103,6 +111,12 @@ To use a custom icon, add an `icon` object to your task definition with an `id` 
 7. **Use inline action buttons that appear next to task names:**
    - **Edit Task** (pencil icon) - Click to open the tasks.json file at the exact location where the task is defined
    - **Stop Task** (stop icon) - Available for running tasks to terminate execution
+
+### View Mode (Group vs Flat)
+
+- Open Settings and search for "Fast Tasks: Flat List" to toggle the view:
+  - Off (default): tasks grouped by folders when multiple folders are open
+  - On: a single flat list of all tasks; labels show `Folder / Task`
 
 ### Keyboard Shortcuts
 - `Ctrl+Shift+P` or `Cmd+Shift+P` (Mac) and type "Fast Tasks" to see all available commands

@@ -2,6 +2,15 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.1.1] - 2025-09-01
+
+### Added
+- Multi-root workspace support:
+  - Grouped view by workspace folders (default when multiple folders)
+  - Setting `fast-tasks.flatList` to show a single flat list
+  - Prefix `Folder / Task` only in flat mode
+  - Always flat when only one workspace folder
+
 ## [0.1.0] - 2025-06-06
 
 ### Added

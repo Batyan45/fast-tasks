@@ -16,6 +16,15 @@ export function activate(context: vscode.ExtensionContext): void {
             vscode.window.registerTreeDataProvider('fastTasksView', tasksProvider),
             ...registerCommands(tasksProvider)
         );
+
+        // Refresh on configuration change toggling flat list
+        context.subscriptions.push(
+            vscode.workspace.onDidChangeConfiguration(e => {
+                if (e.affectsConfiguration('fast-tasks.flatList')) {
+                    tasksProvider.refresh();
+                }
+            })
+        );
     } catch (error) {
         console.error('Failed to activate Fast Tasks extension:', error);
         void vscode.window.showErrorMessage('Failed to activate Fast Tasks extension');

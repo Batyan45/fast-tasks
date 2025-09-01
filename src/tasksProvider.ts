@@ -46,8 +46,8 @@ type TaskColorType = keyof typeof TASK_COLORS;
 // Cache timeout in milliseconds
 const CACHE_TIMEOUT = 5000;
 
-export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
-    private readonly _onDidChangeTreeData = new vscode.EventEmitter<TaskItem | undefined | null | void>();
+export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+    private readonly _onDidChangeTreeData = new vscode.EventEmitter<vscode.TreeItem | undefined | null | void>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
     
     private readonly taskStatusMap = new Map<string, TaskStatus>();
@@ -227,17 +227,49 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
         this._onDidChangeTreeData.fire();
     }
 
-    getTreeItem(element: TaskItem): vscode.TreeItem {
+    getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
         return element;
     }
 
-    async getChildren(): Promise<TaskItem[]> {
+    async getChildren(element?: vscode.TreeItem): Promise<vscode.TreeItem[]> {
         if (!vscode.workspace.workspaceFolders) {
             return [];
         }
 
+        const folderCount = vscode.workspace.workspaceFolders.length;
+        const forceFlat = folderCount <= 1; // Always flat when only one workspace folder
+        const isFlat = forceFlat || this.isFlatListEnabled();
         const tasks = await this.getConfiguredTasks();
-        return tasks.map(task => this.createTaskItem(task));
+
+        // Flat list mode
+        if (isFlat) {
+            return tasks.map(task => this.createTaskItem(task));
+        }
+
+        // Grouped mode
+        if (!element) {
+            return vscode.workspace.workspaceFolders.map(folder => new WorkspaceItem(folder));
+        }
+
+        if (element instanceof WorkspaceItem) {
+            const folder = element.folder;
+            const folderTasks = tasks.filter(task => {
+                const scope = (task as any).scope as any;
+                return scope && typeof scope === 'object' && 'name' in scope && scope.name === folder.name;
+            });
+            return folderTasks.map(task => this.createTaskItem(task));
+        }
+
+        return [];
+    }
+
+    private isFlatListEnabled(): boolean {
+        try {
+            const config = vscode.workspace.getConfiguration('fast-tasks');
+            return config.get<boolean>('flatList', false);
+        } catch {
+            return false;
+        }
     }
 
     private async getConfiguredTasks(): Promise<vscode.Task[]> {
@@ -284,9 +316,15 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
             };
             console.log("Applied special icon for test task");
         }
+
+        // Display label with workspace prefix only in flat list mode
+        const hasMultipleWorkspaces = (vscode.workspace.workspaceFolders?.length || 0) > 1;
+        const displayLabel = this.isFlatListEnabled() && hasMultipleWorkspaces && workspaceName
+            ? `${workspaceName} / ${task.name}`
+            : task.name;
         
         const taskItem = new TaskItem(
-            task.name,
+            displayLabel,
             task.definition.type,
             vscode.TreeItemCollapsibleState.None,
             {
@@ -314,7 +352,8 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
     }
 
     async stopTask(item: TaskItem): Promise<void> {
-        const taskStatus = this.taskStatusMap.get(item.label);
+        const key = item.task?.name ?? item.label;
+        const taskStatus = this.taskStatusMap.get(key);
         taskStatus?.execution?.terminate();
     }
 
@@ -324,8 +363,9 @@ export class TasksProvider implements vscode.TreeDataProvider<TaskItem> {
             workspaceName = item.task.scope.name;
         }
 
-        const key = workspaceName ? `${workspaceName}:${item.label}` : item.label;
-        const location = this.taskLocationMap.get(key) ?? this.taskLocationMap.get(item.label);
+        const taskName = item.task?.name ?? item.label;
+        const key = workspaceName ? `${workspaceName}:${taskName}` : taskName;
+        const location = this.taskLocationMap.get(key) ?? this.taskLocationMap.get(taskName);
 
         if (!location) {
             void vscode.window.showWarningMessage('Task definition not found');
@@ -456,5 +496,12 @@ export class TaskItem extends vscode.TreeItem {
             }
         }
         return TASK_COLORS.default;
+    }
+}
+
+export class WorkspaceItem extends vscode.TreeItem {
+    constructor(public readonly folder: vscode.WorkspaceFolder) {
+        super(folder.name, vscode.TreeItemCollapsibleState.Expanded);
+        this.contextValue = 'workspace';
     }
 }
