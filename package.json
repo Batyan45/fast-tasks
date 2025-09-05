@@ -64,6 +64,10 @@
         "command": "fast-tasks.editTask",
         "title": "Edit Task",
         "icon": "$(edit)"
+      },
+      {
+        "command": "fast-tasks.runTask",
+        "title": "Run Task (Internal)"
       }
     ],
     "views": {

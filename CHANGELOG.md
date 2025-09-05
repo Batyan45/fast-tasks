@@ -2,6 +2,13 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.1.4] - 2025-09-05
+
+### Fixed
+- Executing tasks with identical names across different workspace folders always ran the first match. Now the exact task from the clicked workspace is executed by:
+  - Using a unique key `workspaceName:taskName` for selection and status tracking
+  - Passing the actual `vscode.Task` object to execution instead of only the name
+
 ## [0.1.3] - 2025-09-02
 
 ### Added

@@ -5,7 +5,8 @@ const COMMANDS = {
     refreshTasks: 'fast-tasks.refreshTasks',
     selectTasks: 'fast-tasks.selectTasks',
     stopTask: 'fast-tasks.stopTask',
-    editTask: 'fast-tasks.editTask'
+    editTask: 'fast-tasks.editTask',
+    runTask: 'fast-tasks.runTask'
 } as const;
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -21,7 +22,7 @@ export function activate(context: vscode.ExtensionContext): void {
         context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration(e => {
                 if (e.affectsConfiguration('fast-tasks.flatList')) {
-                    tasksProvider.refresh();
+                    tasksProvider.refresh(false, false, false);
                 }
             })
         );
@@ -35,7 +36,7 @@ function registerCommands(tasksProvider: TasksProvider): vscode.Disposable[] {
     return [
         vscode.commands.registerCommand(
             COMMANDS.refreshTasks, 
-            () => tasksProvider.refresh(true)
+            () => tasksProvider.refresh(true, true, true)
         ),
         vscode.commands.registerCommand(
             COMMANDS.selectTasks, 
@@ -48,6 +49,17 @@ function registerCommands(tasksProvider: TasksProvider): vscode.Disposable[] {
         vscode.commands.registerCommand(
             COMMANDS.editTask,
             (item: TaskItem) => tasksProvider.editTask(item)
+        ),
+        vscode.commands.registerCommand(
+            COMMANDS.runTask,
+            async (task: vscode.Task) => {
+                try {
+                    await vscode.tasks.executeTask(task);
+                } catch (error) {
+                    console.error('Failed to execute task:', error);
+                    void vscode.window.showErrorMessage('Failed to execute task');
+                }
+            }
         )
     ];
 }

@@ -66,8 +66,8 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         try {
             vscode.tasks.onDidStartTaskProcess(e => {
                 if (e.execution.task) {
-                    const { name } = e.execution.task;
-                    this.taskStatusMap.set(name, {
+                    const key = this.getTaskKey(e.execution.task);
+                    this.taskStatusMap.set(key, {
                         isActive: true,
                         execution: e.execution
                     });
@@ -77,8 +77,8 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
             vscode.tasks.onDidEndTaskProcess(e => {
                 if (e.execution.task) {
-                    const { name } = e.execution.task;
-                    this.taskStatusMap.set(name, {
+                    const key = this.getTaskKey(e.execution.task);
+                    this.taskStatusMap.set(key, {
                         isActive: false,
                         status: e.exitCode === 0 ? 'Success' : `Failed (${e.exitCode})`
                     });
@@ -208,11 +208,14 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
                 workspaceName = (task.scope as vscode.WorkspaceFolder).name;
             }
 
+            const taskKey = this.getTaskKey(task);
+
             return {
                 label: task.name,
                 description: hasMultipleWorkspaces && workspaceName ? workspaceName : undefined,
-                picked: this.selectedTasks.includes(task.name)
-            } as vscode.QuickPickItem & { picked: boolean };
+                picked: this.selectedTasks.includes(taskKey) || this.selectedTasks.includes(task.name),
+                taskKey
+            } as vscode.QuickPickItem & { picked: boolean; taskKey: string };
         });
 
         const selected = await vscode.window.showQuickPick(taskItems, {
@@ -221,18 +224,23 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         });
 
         if (selected) {
-            this.selectedTasks = selected.map(item => item.label);
+            // Prefer unique keys; fall back to name for backward compatibility
+            this.selectedTasks = selected.map(item => (item as any).taskKey ?? (item.description ? `${item.description}:${item.label}` : item.label));
             await this.workspaceState.update('selectedTasks', this.selectedTasks);
             this.refresh();
         }
     }
 
-    refresh(clearStatuses = false): void {
+    refresh(clearStatuses = false, reloadIcons = false, invalidateCache = false): void {
         if (clearStatuses) {
             this.taskStatusMap.clear();
         }
-        this.taskCache = null; // Invalidate the task cache
-        this.loadCustomIcons(); // Reload custom icons
+        if (invalidateCache) {
+            this.taskCache = null; // Invalidate the task cache
+        }
+        if (reloadIcons) {
+            this.loadCustomIcons(); // Reload custom icons only when requested
+        }
         this._onDidChangeTreeData.fire();
     }
 
@@ -292,14 +300,18 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             source: t.source
         })));
         
-        return tasks.filter(task => 
-            this.selectedTasks.length === 0 || 
-            this.selectedTasks.includes(task.name)
-        );
+        return tasks.filter(task => {
+            if (this.selectedTasks.length === 0) {
+                return true;
+            }
+            const key = this.getTaskKey(task);
+            return this.selectedTasks.includes(key) || this.selectedTasks.includes(task.name);
+        });
     }
 
     private createTaskItem(task: vscode.Task): TaskItem {
-        const taskStatus = this.taskStatusMap.get(task.name);
+        const key = this.getTaskKey(task);
+        const taskStatus = this.taskStatusMap.get(key) ?? this.taskStatusMap.get(task.name);
         
         // Try to get workspace-specific icon first
         let workspaceName = '';
@@ -337,9 +349,9 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             task.definition.type,
             vscode.TreeItemCollapsibleState.None,
             {
-                command: 'workbench.action.tasks.runTask',
+                command: 'fast-tasks.runTask',
                 title: '',
-                arguments: [task.name]
+                arguments: [task]
             },
             task,
             customIcon
@@ -353,16 +365,17 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             taskItem.description = taskStatus.status;
         }
 
-        if (taskStatus?.isActive || this.selectedTasks.includes(task.name)) {
-            taskItem.resourceUri = vscode.Uri.parse(`task://${task.name}`);
+        if (taskStatus?.isActive || this.selectedTasks.includes(key) || this.selectedTasks.includes(task.name)) {
+            const uriKey = encodeURIComponent(key);
+            taskItem.resourceUri = vscode.Uri.parse(`task://${uriKey}`);
         }
 
         return taskItem;
     }
 
     async stopTask(item: TaskItem): Promise<void> {
-        const key = item.task?.name ?? item.label;
-        const taskStatus = this.taskStatusMap.get(key);
+        const mapKey = item.task ? this.getTaskKey(item.task) : (item.label ?? '');
+        const taskStatus = this.taskStatusMap.get(mapKey) ?? this.taskStatusMap.get(item.task?.name ?? item.label ?? '');
         taskStatus?.execution?.terminate();
     }
 
@@ -386,6 +399,14 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const position = new vscode.Position(location.line, 0);
         editor.selection = new vscode.Selection(position, position);
         editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+    }
+
+    private getTaskKey(task: vscode.Task): string {
+        let workspaceName = '';
+        if (task.scope && typeof task.scope === 'object' && 'name' in task.scope) {
+            workspaceName = (task.scope as vscode.WorkspaceFolder).name;
+        }
+        return workspaceName ? `${workspaceName}:${task.name}` : task.name;
     }
 }
 
