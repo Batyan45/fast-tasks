@@ -2,6 +2,12 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.1.5] - 2025-11-01
+
+### Changed
+- Stop action now performs a soft stop (sends Ctrl+C to the task terminal) to keep the terminal open and preserve output.
+- Re-running a task from the Fast Tasks view first attempts a soft stop with a brief wait, then starts a new run, avoiding VS Code's default kill/restart that closes the terminal.
+
 ## [0.1.4] - 2025-09-05
 
 ### Fixed

@@ -72,7 +72,7 @@
                 "reveal": "silent"
             },
             "problemMatcher": ["$tsc", "$eslint-stylish"]
-        },
+        }, 
         {
             "label": "VSCODE publish",
             "type": "shell",
@@ -104,6 +104,16 @@
             "problemMatcher": []
         },
         {
+            "label": "Open VSX publish",
+            "type": "shell",
+            "command": "npx --yes ovsx publish -p ${input:openVsxToken}",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
 			"label": "Run Tests",
 			"type": "npm",
 			"script": "test",
@@ -122,6 +132,12 @@
 			"description": "Version type to bump",
 			"options": ["patch", "minor", "major"],
 			"default": "patch"
+		},
+		{
+			"id": "openVsxToken",
+			"type": "promptString",
+			"description": "Open VSX access token (OVSX_PAT)",
+			"password": true
 		}
 	]
 }

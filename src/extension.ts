@@ -52,14 +52,7 @@ function registerCommands(tasksProvider: TasksProvider): vscode.Disposable[] {
         ),
         vscode.commands.registerCommand(
             COMMANDS.runTask,
-            async (task: vscode.Task) => {
-                try {
-                    await vscode.tasks.executeTask(task);
-                } catch (error) {
-                    console.error('Failed to execute task:', error);
-                    void vscode.window.showErrorMessage('Failed to execute task');
-                }
-            }
+            async (task: vscode.Task) => tasksProvider.runTask(task)
         )
     ];
 }

@@ -376,7 +376,70 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     async stopTask(item: TaskItem): Promise<void> {
         const mapKey = item.task ? this.getTaskKey(item.task) : (item.label ?? '');
         const taskStatus = this.taskStatusMap.get(mapKey) ?? this.taskStatusMap.get(item.task?.name ?? item.label ?? '');
-        taskStatus?.execution?.terminate();
+        const execution = taskStatus?.execution;
+
+        if (!execution) {
+            return;
+        }
+
+        // Prefer a "soft" stop to preserve terminal output: send Ctrl+C to the task terminal
+        try {
+            // VS Code API <1.92 doesn't expose TaskExecution.terminal in types
+            const term = (execution as any).terminal as vscode.Terminal | undefined;
+            if (term) {
+                term.sendText('\x03', false); // Ctrl+C without adding a newline
+                return;
+            }
+        } catch (err) {
+            console.error('Soft stop failed, falling back to terminate():', err);
+        }
+
+        // Fallback if no terminal is available or soft stop failed
+        try {
+            await execution.terminate();
+        } catch (err) {
+            console.error('Failed to terminate task execution:', err);
+        }
+    }
+
+    // Execute a task; if already running, first attempt a soft stop (Ctrl+C) to keep the terminal open
+    async runTask(task: vscode.Task): Promise<void> {
+        try {
+            const key = this.getTaskKey(task);
+            const status = this.taskStatusMap.get(key) ?? this.taskStatusMap.get(task.name);
+
+            if (status?.isActive && status.execution) {
+                try {
+                    const term = (status.execution as any).terminal as vscode.Terminal | undefined;
+                    term?.sendText('\x03', false);
+                } catch (err) {
+                    console.error('Soft stop on re-run failed:', err);
+                    // As a last resort, terminate; this may close the terminal, but we avoid hanging
+                    try { await status.execution.terminate(); } catch {}
+                }
+
+                // Wait briefly for the process to end to avoid VS Code's restart-kill prompt
+                await new Promise<void>((resolve) => {
+                    const timeout = setTimeout(() => {
+                        endDisposable.dispose();
+                        resolve();
+                    }, 2000);
+
+                    const endDisposable = vscode.tasks.onDidEndTaskProcess(e => {
+                        if (e.execution === status.execution) {
+                            clearTimeout(timeout);
+                            endDisposable.dispose();
+                            resolve();
+                        }
+                    });
+                });
+            }
+
+            await vscode.tasks.executeTask(task);
+        } catch (error) {
+            console.error('Failed to execute task:', error);
+            void vscode.window.showErrorMessage('Failed to execute task');
+        }
     }
 
     async editTask(item: TaskItem): Promise<void> {
