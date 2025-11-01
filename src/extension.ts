@@ -18,10 +18,14 @@ export function activate(context: vscode.ExtensionContext): void {
             ...registerCommands(tasksProvider)
         );
 
-        // Refresh on configuration change toggling flat list
+        // Refresh on configuration change (flat list or hide handling)
         context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration(e => {
-                if (e.affectsConfiguration('fast-tasks.flatList')) {
+                if (
+                    e.affectsConfiguration('fast-tasks.flatList') ||
+                    e.affectsConfiguration('fast-tasks.ignoreHide')
+                ) {
+                    // No need to reload icons or invalidate cache for config-only changes
                     tasksProvider.refresh(false, false, false);
                 }
             })

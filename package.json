@@ -33,17 +33,22 @@
   "bugs": {
     "url": "https://github.com/Batyan45/fast-tasks/issues"
   },
-  "contributes": {
-    "configuration": {
-      "title": "Fast Tasks",
-      "properties": {
-        "fast-tasks.flatList": {
-          "type": "boolean",
-          "default": false,
-          "description": "Show tasks as a single flat list instead of grouping by folders"
+    "contributes": {
+      "configuration": {
+        "title": "Fast Tasks",
+        "properties": {
+          "fast-tasks.flatList": {
+            "type": "boolean",
+            "default": false,
+            "description": "Show tasks as a single flat list instead of grouping by folders"
+          },
+          "fast-tasks.ignoreHide": {
+            "type": "boolean",
+            "default": false,
+            "description": "Ignore tasks.json 'hide' and show all tasks"
+          }
         }
-      }
-    },
+      },
     "commands": [
       {
         "command": "fast-tasks.refreshTasks",

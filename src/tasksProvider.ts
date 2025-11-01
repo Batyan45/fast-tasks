@@ -55,6 +55,7 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     private taskCache: { tasks: vscode.Task[]; timestamp: number } | null = null;
     private taskIconMap: Map<string, CustomIcon> = new Map();
     private taskLocationMap: Map<string, { filePath: string; line: number }> = new Map();
+    private hiddenTaskSet: Set<string> = new Set();
 
     constructor(private readonly workspaceState: vscode.Memento) {
         this.selectedTasks = this.workspaceState.get('selectedTasks', []);
@@ -96,6 +97,7 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             // Clear existing mappings
             this.taskIconMap.clear();
             this.taskLocationMap.clear();
+            this.hiddenTaskSet.clear();
             
             // Find tasks.json files in all workspace folders
             if (vscode.workspace.workspaceFolders) {
@@ -166,6 +168,14 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
                         this.taskLocationMap.set(mapKey, { filePath, line });
                         this.taskLocationMap.set(label, { filePath, line });
                     }
+
+                    // Respect tasks.json "hide" flag; default is false (visible)
+                    const isHidden = taskDef?.hide === true;
+                    if (label && isHidden) {
+                        const mapKey = workspaceName ? `${workspaceName}:${label}` : label;
+                        this.hiddenTaskSet.add(mapKey);
+                        this.hiddenTaskSet.add(label);
+                    }
                 });
             }
         } catch (error) {
@@ -200,7 +210,9 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
 
     async selectTasks(): Promise<void> {
-        const allTasks = await this.getAllAvailableTasks();
+        const ignoreHide = this.isIgnoreHideEnabled();
+        const allTasksRaw = await this.getAllAvailableTasks();
+        const allTasks = ignoreHide ? allTasksRaw : allTasksRaw.filter(t => !this.isTaskHidden(t));
         const hasMultipleWorkspaces = (vscode.workspace.workspaceFolders?.length || 0) > 1;
         const taskItems = allTasks.map(task => {
             let workspaceName = '';
@@ -289,17 +301,29 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
     }
 
+    private isIgnoreHideEnabled(): boolean {
+        try {
+            const config = vscode.workspace.getConfiguration('fast-tasks');
+            return config.get<boolean>('ignoreHide', false);
+        } catch {
+            return false;
+        }
+    }
+
     private async getConfiguredTasks(): Promise<vscode.Task[]> {
-        const tasks = await this.getAllAvailableTasks();
+        const ignoreHide = this.isIgnoreHideEnabled();
+        const tasksRaw = await this.getAllAvailableTasks();
         
         // Debug logging to help diagnose task icon issues
-        console.log('All available tasks:', tasks.map(t => ({
+        console.log('All available tasks:', tasksRaw.map(t => ({
             name: t.name,
             type: t.definition.type,
             definition: t.definition,
             source: t.source
         })));
-        
+        // Apply hide filtering unless ignored
+        const tasks = ignoreHide ? tasksRaw : tasksRaw.filter(task => !this.isTaskHidden(task));
+
         return tasks.filter(task => {
             if (this.selectedTasks.length === 0) {
                 return true;
@@ -307,6 +331,15 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             const key = this.getTaskKey(task);
             return this.selectedTasks.includes(key) || this.selectedTasks.includes(task.name);
         });
+    }
+
+    private isTaskHidden(task: vscode.Task): boolean {
+        let workspaceName = '';
+        if (task.scope && typeof task.scope === 'object' && 'name' in task.scope) {
+            workspaceName = (task.scope as vscode.WorkspaceFolder).name;
+        }
+        const key = workspaceName ? `${workspaceName}:${task.name}` : task.name;
+        return this.hiddenTaskSet.has(key) || this.hiddenTaskSet.has(task.name);
     }
 
     private createTaskItem(task: vscode.Task): TaskItem {

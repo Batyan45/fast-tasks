@@ -8,6 +8,10 @@ All notable changes to the "Fast Tasks" extension will be documented in this fil
 - Stop action now performs a soft stop (sends Ctrl+C to the task terminal) to keep the terminal open and preserve output.
 - Re-running a task from the Fast Tasks view first attempts a soft stop with a brief wait, then starts a new run, avoiding VS Code's default kill/restart that closes the terminal.
 
+### Added
+- Respect `tasks.json` `hide` flag: hidden tasks are not shown by default.
+- New setting `fast-tasks.ignoreHide` to show all tasks and ignore `hide`.
+
 ## [0.1.4] - 2025-09-05
 
 ### Fixed

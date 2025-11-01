@@ -118,6 +118,11 @@ To use a custom icon, add an `icon` object to your task definition with an `id` 
   - Off (default): tasks grouped by folders when multiple folders are open
   - On: a single flat list of all tasks; labels show `Folder / Task`
 
+### Hidden Tasks (tasks.json `hide`)
+
+- By default, Fast Tasks hides tasks that have `"hide": true` in `tasks.json`.
+- To show all tasks (ignore the `hide` flag), enable the setting: `Fast Tasks › Ignore Hide`.
+
 ### Keyboard Shortcuts
 - `Ctrl+Shift+P` or `Cmd+Shift+P` (Mac) and type "Fast Tasks" to see all available commands
 - Use arrow keys to navigate through tasks
