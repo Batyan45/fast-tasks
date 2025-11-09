@@ -2,6 +2,11 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.1.6] - 2025-11-09
+
+### Changed
+- In multi-root workspaces, hide workspace folders that do not contain any tasks.
+
 ## [0.1.5] - 2025-11-01
 
 ### Changed

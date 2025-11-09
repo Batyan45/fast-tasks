@@ -18,7 +18,7 @@ suite('Fast Tasks Extension Test Suite', () => {
     });
 
     test('Tasks View Registration', async () => {
-        const extension = vscode.extensions.getExtension('fast-tasks');
+        const extension = vscode.extensions.getExtension('batyan-soft.fast-tasks');
         assert.ok(extension, 'Extension should be present');
 
         const views = vscode.window.registerTreeDataProvider;
