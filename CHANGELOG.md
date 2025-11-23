@@ -2,6 +2,11 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.1.7] - 2025-11-23
+
+### Added
+- Support for tasks defined in `.code-workspace` files (both standard `tasks` property and `settings.tasks` property)
+
 ## [0.1.6] - 2025-11-09
 
 ### Changed

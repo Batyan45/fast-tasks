@@ -129,10 +129,20 @@ To use a custom icon, add an `icon` object to your task definition with an `id` 
 - Press `Enter` to run a selected task
 - Press `Esc` to stop a running task
 
+## Task Sources
+
+Fast Tasks supports tasks from multiple sources:
+
+- **Workspace folder tasks**: Tasks defined in `.vscode/tasks.json` or `tasks.json` in workspace folders
+- **Multi-root workspace tasks**: Tasks defined in `.code-workspace` files (both standard `tasks` property and `settings.tasks` property)
+- **User tasks**: Global tasks defined in User `tasks.json` (accessible via "Tasks: Open User Tasks" command)
+
+All task sources support custom icons, the "Edit Task" feature, and the `hide` flag.
+
 ## Requirements
 
 - Visual Studio Code version 1.80.0 or higher
-- A workspace with defined tasks (in tasks.json or workspace files)
+- A workspace with defined tasks (in tasks.json, .code-workspace files, or User tasks.json)
 
 ## Contributing
 
