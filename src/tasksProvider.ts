@@ -360,13 +360,17 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
         // Grouped mode
         if (!element) {
+            const workspaceScopedTasks = tasks.filter(task => typeof task.scope === 'number');
             const foldersWithTasks = vscode.workspace.workspaceFolders.filter(folder =>
                 tasks.some(task => {
                     const scope = task.scope as vscode.WorkspaceFolder;
                     return scope?.name === folder.name;
                 })
             );
-            return foldersWithTasks.map(folder => new WorkspaceItem(folder));
+            return [
+                ...workspaceScopedTasks.map(task => this.createTaskItem(task)),
+                ...foldersWithTasks.map(folder => new WorkspaceItem(folder)),
+            ];
         }
 
         if (element instanceof WorkspaceItem) {
