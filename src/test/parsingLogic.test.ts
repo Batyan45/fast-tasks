@@ -21,7 +21,7 @@ suite('Task Parsing Logic', () => {
 
         const tree = JSONC.parseTree(content);
         assert.ok(tree);
-        const tasksNode = JSONC.findNodeAtLocation(tree, ['tasks']);
+        const tasksNode = JSONC.findNodeAtLocation(tree, ['tasks', 'tasks']);
         assert.ok(tasksNode);
 
         const tasks = tasksNode.children;
@@ -30,7 +30,8 @@ suite('Task Parsing Logic', () => {
 
         const taskDef = JSONC.getNodeValue(tasks[0]);
         assert.strictEqual(taskDef.label, "Workspace Task");
-        assert.deepStrictEqual(taskDef.icon, { id: "beaker", color: "terminal.ansiGreen" });
+        assert.strictEqual(taskDef.icon.id, "beaker");
+        assert.strictEqual(taskDef.icon.color, "terminal.ansiGreen");
     });
 
     test('Parse .code-workspace tasks (Settings)', () => {
@@ -55,18 +56,16 @@ suite('Task Parsing Logic', () => {
         const tree = JSONC.parseTree(content);
         assert.ok(tree);
 
-        const settingsTasksNode = JSONC.findNodeAtLocation(tree, ['settings', 'tasks']);
+        const settingsTasksNode = JSONC.findNodeAtLocation(tree, ['settings', 'tasks', 'tasks']);
         assert.ok(settingsTasksNode);
 
-        const innerTasksNode = JSONC.findNodeAtLocation(settingsTasksNode, ['tasks']);
-        assert.ok(innerTasksNode);
-
-        const tasks = innerTasksNode.children;
+        const tasks = settingsTasksNode.children;
         assert.ok(tasks);
         assert.strictEqual(tasks.length, 1);
 
         const taskDef = JSONC.getNodeValue(tasks[0]);
         assert.strictEqual(taskDef.label, "Settings Task");
-        assert.deepStrictEqual(taskDef.icon, { id: "zap", color: "terminal.ansiYellow" });
+        assert.strictEqual(taskDef.icon.id, "zap");
+        assert.strictEqual(taskDef.icon.color, "terminal.ansiYellow");
     });
 });

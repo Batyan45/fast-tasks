@@ -150,9 +150,9 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             // OSS path
             const ossPath = path.join(appData, 'Code - OSS', 'User', 'tasks.json');
 
-            if (fs.existsSync(codePath)) return codePath;
-            if (fs.existsSync(codeInsidersPath)) return codeInsidersPath;
-            if (fs.existsSync(ossPath)) return ossPath;
+            if (fs.existsSync(codePath)) { return codePath; }
+            if (fs.existsSync(codeInsidersPath)) { return codeInsidersPath; }
+            if (fs.existsSync(ossPath)) { return ossPath; }
         } catch (e) {
             console.error('Error determining user tasks path:', e);
         }
@@ -163,7 +163,7 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         try {
             const content = fs.readFileSync(filePath, 'utf8');
             const tree = JSONC.parseTree(content);
-            if (!tree) return;
+            if (!tree) { return; }
 
             // 1. Standard "tasks" property at root
             const tasksNode = JSONC.findNodeAtLocation(tree, ['tasks']);
@@ -196,14 +196,14 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
 
     private processTasksNode(tasksArrayNode: JSONC.Node, content: string, filePath: string, workspaceName: string | undefined, isUserTask: boolean = false) {
-        if (!tasksArrayNode.children) return;
+        if (!tasksArrayNode.children) { return; }
 
         tasksArrayNode.children.forEach((taskNode, index) => {
             const taskDef = JSONC.getNodeValue(taskNode);
-            if (!taskDef) return;
+            if (!taskDef) { return; }
 
             const label = taskDef.label ?? taskDef.taskName;
-            if (!label) return;
+            if (!label) { return; }
 
             // Handle Icon Mapping
             if (taskDef.icon) {

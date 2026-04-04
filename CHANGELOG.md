@@ -2,6 +2,15 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.2.0] - 2026-04-04
+
+### Added
+- Support for Workspace and Global scoped tasks in Grouped mode. These tasks are now displayed at the top level of the tree, before individual workspace folders.
+
+### Fixed
+- Fixed task parsing logic tests that were incorrectly calculating task counts.
+- Fixed linter warnings related to missing curly braces in `if` statements.
+
 ## [0.1.7] - 2025-11-23
 
 ### Added
