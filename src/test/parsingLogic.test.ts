@@ -1,5 +1,48 @@
 import * as assert from 'assert';
 import * as JSONC from 'jsonc-parser';
+import { extractTaskDefinitions } from '../tasksProvider';
+
+suite('extractTaskDefinitions', () => {
+    test('Extracts tasks from a standard configuration object', () => {
+        const value = {
+            version: '2.0.0',
+            tasks: [
+                { label: 'Build', type: 'shell', icon: { id: 'package', color: 'charts.blue' } },
+                { label: 'Test', type: 'shell' }
+            ]
+        };
+
+        const tasks = extractTaskDefinitions(value);
+        assert.strictEqual(tasks.length, 2);
+        assert.strictEqual(tasks[0].label, 'Build');
+        assert.strictEqual(tasks[0].icon?.id, 'package');
+        assert.strictEqual(tasks[0].icon?.color, 'charts.blue');
+    });
+
+    test('Extracts tasks from a legacy array', () => {
+        const value = [{ label: 'Legacy', type: 'shell' }];
+
+        const tasks = extractTaskDefinitions(value);
+        assert.strictEqual(tasks.length, 1);
+        assert.strictEqual(tasks[0].label, 'Legacy');
+    });
+
+    test('Returns empty array for undefined or malformed values', () => {
+        assert.deepStrictEqual(extractTaskDefinitions(undefined), []);
+        assert.deepStrictEqual(extractTaskDefinitions(null), []);
+        assert.deepStrictEqual(extractTaskDefinitions('string'), []);
+        assert.deepStrictEqual(extractTaskDefinitions({ version: '2.0.0' }), []);
+        assert.deepStrictEqual(extractTaskDefinitions({ tasks: 'not-an-array' }), []);
+    });
+
+    test('Filters out non-object entries', () => {
+        const value = { tasks: [{ label: 'Valid' }, null, 'invalid', 42] };
+
+        const tasks = extractTaskDefinitions(value);
+        assert.strictEqual(tasks.length, 1);
+        assert.strictEqual(tasks[0].label, 'Valid');
+    });
+});
 
 suite('Task Parsing Logic', () => {
     test('Parse .code-workspace tasks (Standard)', () => {

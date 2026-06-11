@@ -15,6 +15,33 @@ interface CustomIcon {
     color?: string;
 }
 
+interface TaskConfigDefinition {
+    label?: string;
+    taskName?: string;
+    icon?: { id?: string; color?: string };
+    hide?: boolean;
+}
+
+/**
+ * Extracts the array of task definitions from a "tasks" configuration value,
+ * which may be either an object ({ version, tasks: [...] }) or a legacy array.
+ */
+export function extractTaskDefinitions(value: unknown): TaskConfigDefinition[] {
+    if (!value) {
+        return [];
+    }
+    if (Array.isArray(value)) {
+        return value.filter((t): t is TaskConfigDefinition => typeof t === 'object' && t !== null);
+    }
+    if (typeof value === 'object') {
+        const tasks = (value as { tasks?: unknown }).tasks;
+        if (Array.isArray(tasks)) {
+            return tasks.filter((t): t is TaskConfigDefinition => typeof t === 'object' && t !== null);
+        }
+    }
+    return [];
+}
+
 const TASK_ICONS = {
     debug: 'bug',
     build: 'package',
@@ -58,7 +85,10 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     private taskLocationMap: Map<string, { filePath: string; line: number }> = new Map();
     private hiddenTaskSet: Set<string> = new Set();
 
-    constructor(private readonly workspaceState: vscode.Memento) {
+    constructor(
+        private readonly workspaceState: vscode.Memento,
+        private readonly globalStorageUri?: vscode.Uri
+    ) {
         this.selectedTasks = this.workspaceState.get('selectedTasks', []);
         this.initializeTaskListeners();
         this.loadCustomIcons();
@@ -100,66 +130,113 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             this.taskLocationMap.clear();
             this.hiddenTaskSet.clear();
 
-            // 1. Find tasks.json files in all workspace folders
+            // Icons and hide flags come from the configuration model: VS Code itself
+            // resolves user tasks.json, the "tasks" section of settings.json and
+            // .code-workspace files for any installation, profile or remote.
+            const inspected = vscode.workspace.getConfiguration().inspect('tasks');
+            this.processTaskDefinitions(inspected?.globalValue);
+            this.processTaskDefinitions(inspected?.workspaceValue);
+
+            // Locations (line numbers for the edit command) still require parsing files
             if (vscode.workspace.workspaceFolders) {
                 for (const folder of vscode.workspace.workspaceFolders) {
+                    const folderConfig = vscode.workspace.getConfiguration(undefined, folder.uri).inspect('tasks');
+                    this.processTaskDefinitions(folderConfig?.workspaceFolderValue, folder.name);
+
                     // Check in .vscode folder
                     const vscodeFolderPath = path.join(folder.uri.fsPath, '.vscode', 'tasks.json');
                     // Check in root folder
                     const rootFolderPath = path.join(folder.uri.fsPath, 'tasks.json');
 
-                    // Try .vscode/tasks.json
                     if (fs.existsSync(vscodeFolderPath)) {
-                        this.loadIconsFromTasksFile(vscodeFolderPath);
+                        this.loadLocationsFromTasksFile(vscodeFolderPath);
                     }
 
-                    // Also try tasks.json in the root
                     if (fs.existsSync(rootFolderPath)) {
-                        this.loadIconsFromTasksFile(rootFolderPath);
+                        this.loadLocationsFromTasksFile(rootFolderPath);
                     }
                 }
             }
 
-            // 2. Check for .code-workspace file
+            // Check for .code-workspace file
             if (vscode.workspace.workspaceFile && vscode.workspace.workspaceFile.scheme === 'file') {
                 const workspaceFilePath = vscode.workspace.workspaceFile.fsPath;
                 if (workspaceFilePath.endsWith('.code-workspace') && fs.existsSync(workspaceFilePath)) {
-                    this.loadIconsFromWorkspaceFile(workspaceFilePath);
+                    this.loadLocationsFromWorkspaceFile(workspaceFilePath);
                 }
             }
 
-            // 3. Check for User tasks.json
-            const userTasksPath = this.getUserTasksPath();
-            if (userTasksPath && fs.existsSync(userTasksPath)) {
-                this.loadIconsFromTasksFile(userTasksPath, true);
+            // Check for User tasks.json (default profile and all named profiles)
+            for (const userTasksPath of this.getUserTasksPaths()) {
+                this.loadLocationsFromTasksFile(userTasksPath, true);
             }
-
-            console.log('Loaded custom icons:', [...this.taskIconMap.entries()]);
         } catch (error) {
             console.error('Error loading custom icons:', error);
         }
     }
 
-    private getUserTasksPath(): string | undefined {
-        try {
-            const appData = process.env.APPDATA || (process.platform === 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME + '/.config');
-            // VS Code standard path
-            const codePath = path.join(appData, 'Code', 'User', 'tasks.json');
-            // VS Code Insiders path
-            const codeInsidersPath = path.join(appData, 'Code - Insiders', 'User', 'tasks.json');
-            // OSS path
-            const ossPath = path.join(appData, 'Code - OSS', 'User', 'tasks.json');
+    /** Fills the icon map and hidden set from a "tasks" configuration value. */
+    private processTaskDefinitions(value: unknown, workspaceName?: string): void {
+        for (const taskDef of extractTaskDefinitions(value)) {
+            const label = taskDef.label ?? taskDef.taskName;
+            if (typeof label !== 'string' || !label) {
+                continue;
+            }
 
-            if (fs.existsSync(codePath)) { return codePath; }
-            if (fs.existsSync(codeInsidersPath)) { return codeInsidersPath; }
-            if (fs.existsSync(ossPath)) { return ossPath; }
+            const mapKey = workspaceName ? `${workspaceName}:${label}` : label;
+
+            if (taskDef.icon && typeof taskDef.icon === 'object' && typeof taskDef.icon.id === 'string') {
+                const icon: CustomIcon = {
+                    id: taskDef.icon.id,
+                    color: typeof taskDef.icon.color === 'string' ? taskDef.icon.color : undefined
+                };
+                this.taskIconMap.set(mapKey, icon);
+                // Also set with just the task name as fallback
+                this.taskIconMap.set(label, icon);
+            }
+
+            if (taskDef.hide === true) {
+                this.hiddenTaskSet.add(mapKey);
+                this.hiddenTaskSet.add(label);
+            }
+        }
+    }
+
+    private getUserTasksPaths(): string[] {
+        const candidates: string[] = [];
+        try {
+            // Derive the User directory from global storage:
+            // <userDataDir>/User/globalStorage/<extensionId> -> <userDataDir>/User.
+            // This works for any installation (stable/Insiders/VSCodium), portable
+            // mode and remote setups.
+            if (this.globalStorageUri?.scheme === 'file') {
+                const userDir = path.resolve(this.globalStorageUri.fsPath, '..', '..');
+                candidates.push(path.join(userDir, 'tasks.json'));
+
+                // globalStorageUri always points at the default profile (vscode#160466),
+                // so scan named profile directories as well
+                const profilesDir = path.join(userDir, 'profiles');
+                if (fs.existsSync(profilesDir)) {
+                    for (const entry of fs.readdirSync(profilesDir)) {
+                        candidates.push(path.join(profilesDir, entry, 'tasks.json'));
+                    }
+                }
+            }
+
+            // Fallback to well-known paths
+            const appData = process.env.APPDATA || (process.platform === 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME + '/.config');
+            candidates.push(
+                path.join(appData, 'Code', 'User', 'tasks.json'),
+                path.join(appData, 'Code - Insiders', 'User', 'tasks.json'),
+                path.join(appData, 'Code - OSS', 'User', 'tasks.json')
+            );
         } catch (e) {
             console.error('Error determining user tasks path:', e);
         }
-        return undefined;
+        return [...new Set(candidates)].filter(p => fs.existsSync(p));
     }
 
-    private loadIconsFromWorkspaceFile(filePath: string): void {
+    private loadLocationsFromWorkspaceFile(filePath: string): void {
         try {
             const content = fs.readFileSync(filePath, 'utf8');
             const tree = JSONC.parseTree(content);
@@ -191,37 +268,19 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             }
 
         } catch (error) {
-            console.error(`Error loading icons from workspace file ${filePath}:`, error);
+            console.error(`Error loading task locations from workspace file ${filePath}:`, error);
         }
     }
 
-    private processTasksNode(tasksArrayNode: JSONC.Node, content: string, filePath: string, workspaceName: string | undefined, isUserTask: boolean = false) {
+    private processTasksNode(tasksArrayNode: JSONC.Node, content: string, filePath: string, workspaceName: string | undefined) {
         if (!tasksArrayNode.children) { return; }
 
-        tasksArrayNode.children.forEach((taskNode, index) => {
+        tasksArrayNode.children.forEach(taskNode => {
             const taskDef = JSONC.getNodeValue(taskNode);
             if (!taskDef) { return; }
 
             const label = taskDef.label ?? taskDef.taskName;
             if (!label) { return; }
-
-            // Handle Icon Mapping
-            if (taskDef.icon) {
-                // For User tasks, we don't have a workspace name, so we just use the label
-                // For Workspace tasks, we use the workspace name if available
-                const mapKey = workspaceName ? `${workspaceName}:${label}` : label;
-
-                this.taskIconMap.set(mapKey, {
-                    id: taskDef.icon.id,
-                    color: taskDef.icon.color
-                });
-
-                // Also set with just the task name as fallback
-                this.taskIconMap.set(label, {
-                    id: taskDef.icon.id,
-                    color: taskDef.icon.color
-                });
-            }
 
             // Handle Location Mapping
             const labelNode = JSONC.findNodeAtLocation(taskNode, ['label']) ||
@@ -232,17 +291,10 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             const mapKey = workspaceName ? `${workspaceName}:${label}` : label;
             this.taskLocationMap.set(mapKey, { filePath, line });
             this.taskLocationMap.set(label, { filePath, line });
-
-            // Handle Hidden Tasks
-            const isHidden = taskDef?.hide === true;
-            if (isHidden) {
-                this.hiddenTaskSet.add(mapKey);
-                this.hiddenTaskSet.add(label);
-            }
         });
     }
 
-    private loadIconsFromTasksFile(filePath: string, isUserTask: boolean = false): void {
+    private loadLocationsFromTasksFile(filePath: string, isUserTask: boolean = false): void {
         try {
             const content = fs.readFileSync(filePath, 'utf8');
             const tree = JSONC.parseTree(content);
@@ -258,10 +310,10 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             }
 
             if (tasksArrayNode) {
-                this.processTasksNode(tasksArrayNode, content, filePath, workspaceName, isUserTask);
+                this.processTasksNode(tasksArrayNode, content, filePath, workspaceName);
             }
         } catch (error) {
-            console.error(`Error loading icons from ${filePath}:`, error);
+            console.error(`Error loading task locations from ${filePath}:`, error);
         }
     }
 
@@ -407,13 +459,6 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const ignoreHide = this.isIgnoreHideEnabled();
         const tasksRaw = await this.getAllAvailableTasks();
 
-        // Debug logging to help diagnose task icon issues
-        console.log('All available tasks:', tasksRaw.map(t => ({
-            name: t.name,
-            type: t.definition.type,
-            definition: t.definition,
-            source: t.source
-        })));
         // Apply hide filtering unless ignored
         const tasks = ignoreHide ? tasksRaw : tasksRaw.filter(task => !this.isTaskHidden(task));
 
@@ -453,15 +498,6 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         // Fall back to task name only if not found
         if (!customIcon) {
             customIcon = this.taskIconMap.get(task.name);
-        }
-
-        // Special handling for the "test" task from the example
-        if (task.name === "test" && !customIcon) {
-            customIcon = {
-                id: "database",
-                color: "terminal.ansiGreen"
-            };
-            console.log("Applied special icon for test task");
         }
 
         // Display label with workspace prefix only in flat list mode
@@ -579,6 +615,12 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const location = this.taskLocationMap.get(key) ?? this.taskLocationMap.get(taskName);
 
         if (!location) {
+            // For User tasks we may not know the file path (e.g. non-default profile);
+            // let VS Code open the user tasks file itself
+            if (item.task?.source === 'User') {
+                await vscode.commands.executeCommand('workbench.action.tasks.openUserTasks');
+                return;
+            }
             void vscode.window.showWarningMessage('Task definition not found');
             return;
         }

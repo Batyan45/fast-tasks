@@ -135,9 +135,9 @@ Fast Tasks supports tasks from multiple sources:
 
 - **Workspace folder tasks**: Tasks defined in `.vscode/tasks.json` or `tasks.json` in workspace folders
 - **Multi-root workspace tasks**: Tasks defined in `.code-workspace` files (both standard `tasks` property and `settings.tasks` property)
-- **User tasks**: Global tasks defined in User `tasks.json` (accessible via "Tasks: Open User Tasks" command)
+- **User tasks**: Global tasks defined in User `tasks.json` (accessible via "Tasks: Open User Tasks" command) or in the `tasks` section of user `settings.json`
 
-All task sources support custom icons, the "Edit Task" feature, and the `hide` flag.
+All task sources support custom icons, the "Edit Task" feature, and the `hide` flag. Custom icons and `hide` flags are read through the VS Code configuration model, so they work with any VS Code distribution, profiles, and remote setups (WSL/SSH).
 
 ## Requirements
 

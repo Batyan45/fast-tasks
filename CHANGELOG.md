@@ -2,6 +2,15 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.2.1] - 2026-06-11
+
+### Fixed
+- Custom task `icon` (id/color) and the `hide` flag now work for User tasks and tasks defined in the `tasks` section of `settings.json`, not just `.vscode/tasks.json`. Icons and hide flags are now read through the VS Code configuration model, so they also work across distributions (Insiders, VSCodium), profiles, and remote setups (WSL/SSH). ([#6](https://github.com/Batyan45/fast-tasks/issues/6))
+- "Edit Task" on a User task no longer fails with "Task definition not found"; it falls back to opening the user tasks file when the exact location is unavailable.
+
+### Changed
+- Trimmed the published package: CI workflows and stray internal files are no longer bundled into the `.vsix`.
+
 ## [0.2.0] - 2026-04-04
 
 ### Added

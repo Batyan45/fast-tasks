@@ -3,6 +3,7 @@
 !.vscode-test.mjs/
 !.vscode/
 !.vscodeignore
+!.github/
 
 # Build outputs
 out/

@@ -123,6 +123,38 @@
 				"panel": "shared"
 			},
 			"problemMatcher": []
+		},
+		// --- Demo tasks for manually verifying custom icons (issue #6) ---
+		{
+			"label": "Demo: custom icon (issue example)",
+			"type": "shell",
+			"command": "echo Custom icon demo",
+			"icon": {
+				"id": "github-action",
+				"color": "terminal.ansiGreen"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Demo: rocket icon",
+			"type": "shell",
+			"command": "echo Rocket demo",
+			"icon": {
+				"id": "rocket",
+				"color": "terminal.ansiBlue"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Demo: hidden task",
+			"type": "shell",
+			"command": "echo Hidden demo",
+			"hide": true,
+			"icon": {
+				"id": "eye-closed",
+				"color": "terminal.ansiRed"
+			},
+			"problemMatcher": []
 		}
 	],
 	"inputs": [
