@@ -18,10 +18,15 @@ export function activate(context: vscode.ExtensionContext): void {
             ...registerCommands(tasksProvider)
         );
 
-        // Refresh on configuration change (flat list or hide handling)
+        // Refresh on configuration change (task definitions, flat list or hide handling)
         context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration(e => {
-                if (
+                if (e.affectsConfiguration('tasks')) {
+                    // The "tasks" section changed — or finished loading after activation
+                    // (user tasks.json can arrive late on slow startups and forks):
+                    // reload icon/hide/location maps and re-fetch the task list
+                    tasksProvider.refresh(false, true, true);
+                } else if (
                     e.affectsConfiguration('fast-tasks.flatList') ||
                     e.affectsConfiguration('fast-tasks.ignoreHide')
                 ) {

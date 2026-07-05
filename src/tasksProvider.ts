@@ -175,6 +175,20 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
     }
 
+    /**
+     * The configuration model may not have finished loading when the provider was
+     * constructed (user tasks.json can arrive late on slow startups and VS Code
+     * forks), leaving every map empty. Retry on render while that is the case;
+     * becomes a no-op as soon as anything has been loaded.
+     */
+    private ensureCustomIconsLoaded(): void {
+        if (this.taskIconMap.size === 0 &&
+            this.taskLocationMap.size === 0 &&
+            this.hiddenTaskSet.size === 0) {
+            this.loadCustomIcons();
+        }
+    }
+
     /** Fills the icon map and hidden set from a "tasks" configuration value. */
     private processTaskDefinitions(value: unknown, workspaceName?: string): void {
         for (const taskDef of extractTaskDefinitions(value)) {
@@ -398,6 +412,10 @@ export class TasksProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     async getChildren(element?: vscode.TreeItem): Promise<vscode.TreeItem[]> {
         if (!vscode.workspace.workspaceFolders) {
             return [];
+        }
+
+        if (!element) {
+            this.ensureCustomIconsLoaded();
         }
 
         const folderCount = vscode.workspace.workspaceFolders.length;
