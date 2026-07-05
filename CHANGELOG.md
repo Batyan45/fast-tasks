@@ -2,7 +2,7 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
-## [0.2.2] - 2026-07-05
+## [0.2.4] - 2026-07-05
 
 ### Fixed
 - Custom task icons and `hide` flags could be missing until a manual Refresh when the tasks configuration (user tasks.json in particular) finished loading after the extension had already activated — seen on slow startups and VS Code forks. The view now reloads icons and re-fetches the task list automatically when the tasks configuration becomes available or changes, with a lazy retry on render as a fallback. ([#6](https://github.com/Batyan45/fast-tasks/issues/6))
