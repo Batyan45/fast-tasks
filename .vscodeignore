@@ -16,3 +16,7 @@ vsc-extension-quickstart.md
 **/.vscode-test.*
 **/*.vsix
 AGENTS.md
+CLAUDE.md
+.agents/**
+.claude/**
+.trellis/**
