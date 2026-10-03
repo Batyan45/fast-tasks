@@ -2,6 +2,11 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [0.2.5] - 2026-10-03
+
+### Added
+- A theme-aware checklist icon for the Tasks view when moved from Explorer to the Activity Bar. ([#18](https://github.com/Batyan45/fast-tasks/issues/18))
+
 ## [0.2.4] - 2026-07-05
 
 ### Fixed

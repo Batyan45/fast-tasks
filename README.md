@@ -112,6 +112,10 @@ To use a custom icon, add an `icon` object to your task definition with an `id` 
    - **Edit Task** (pencil icon) - Click to open the tasks.json file at the exact location where the task is defined
    - **Stop Task** (stop icon) - Available for running tasks to terminate execution
 
+### Move Tasks to the Activity Bar
+
+Drag the **Tasks** header from Explorer onto the Activity Bar to give the task list its own view. It uses a checklist icon that follows your VS Code theme.
+
 ### View Mode (Group vs Flat)
 
 - Open Settings and search for "Fast Tasks: Flat List" to toggle the view:

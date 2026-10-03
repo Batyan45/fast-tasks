@@ -2,7 +2,7 @@
   "name": "fast-tasks",
   "displayName": "Fast Tasks",
   "description": "Quick access to workspace tasks from explorer sidebar with enhanced performance and visual feedback",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "publisher": "batyan-soft",
   "license": "MIT",
   "icon": "images/icon.png",
@@ -80,6 +80,7 @@
         {
           "id": "fastTasksView",
           "name": "Tasks",
+          "icon": "$(checklist)",
           "when": "workspaceFolderCount > 0"
         }
       ]
