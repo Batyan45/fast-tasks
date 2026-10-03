@@ -670,6 +670,14 @@ export class TaskItem extends vscode.TreeItem {
         Object.entries(TASK_COLORS).map(([key, value]) => [key, value])
     );
 
+    private static readonly iconKeys = Object.keys(TASK_ICONS).filter(k => k !== 'default');
+    private static readonly iconRegex = new RegExp(TaskItem.iconKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
+    private static readonly iconPriorityMap = new Map(TaskItem.iconKeys.map((key, index) => [key, index]));
+
+    private static readonly colorKeys = Object.keys(TASK_COLORS).filter(k => k !== 'default');
+    private static readonly colorRegex = new RegExp(TaskItem.colorKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
+    private static readonly colorPriorityMap = new Map(TaskItem.colorKeys.map((key, index) => [key, index]));
+
     constructor(
         public readonly label: string,
         public readonly taskType: string,
@@ -757,24 +765,60 @@ export class TaskItem extends vscode.TreeItem {
         }
     }
 
-    private getIconNameFromLabel(label: string): string {
-        // Use Map for O(1) lookup instead of multiple if statements
-        for (const [key, value] of TaskItem.iconMap) {
-            if (label.includes(key)) {
-                return value;
+    private static getBestMatch(
+        text: string,
+        map: Map<string, string>,
+        keys: string[],
+        regex: RegExp,
+        priorityMap: Map<string, number>,
+        defaultValue: string
+    ): string {
+        // 1. O(1) exact match lookup
+        const exactMatch = map.get(text);
+        if (exactMatch) {
+            return exactMatch;
+        }
+
+        // 2. Efficient partial match using regex
+        const matches = text.match(regex);
+        if (matches) {
+            let bestIndex = Infinity;
+            for (const match of matches) {
+                const index = priorityMap.get(match);
+                if (index !== undefined && index < bestIndex) {
+                    bestIndex = index;
+                }
+                if (bestIndex === 0) break;
+            }
+
+            if (bestIndex !== Infinity) {
+                return map.get(keys[bestIndex]) || defaultValue;
             }
         }
-        return TASK_ICONS.default;
+
+        return defaultValue;
+    }
+
+    private getIconNameFromLabel(label: string): string {
+        return TaskItem.getBestMatch(
+            label,
+            TaskItem.iconMap,
+            TaskItem.iconKeys,
+            TaskItem.iconRegex,
+            TaskItem.iconPriorityMap,
+            TASK_ICONS.default
+        );
     }
 
     private getColorFromTaskType(taskType: string): string {
-        // Use Map for O(1) lookup instead of multiple if statements
-        for (const [key, value] of TaskItem.colorMap) {
-            if (taskType.includes(key)) {
-                return value;
-            }
-        }
-        return TASK_COLORS.default;
+        return TaskItem.getBestMatch(
+            taskType,
+            TaskItem.colorMap,
+            TaskItem.colorKeys,
+            TaskItem.colorRegex,
+            TaskItem.colorPriorityMap,
+            TASK_COLORS.default
+        );
     }
 }
 
