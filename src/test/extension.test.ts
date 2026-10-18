@@ -25,10 +25,10 @@ suite('Fast Tasks Extension Test Suite', () => {
         assert.ok(views, 'Tree Data Provider should be registered');
     });
 
-    test('Refresh Command Registration', () => {
-        const command = vscode.commands.getCommands(true).then(commands => {
-            assert.ok(commands.includes('fast-tasks.refreshTasks'), 
-                'Refresh command should be registered');
-        });
+    test('Refresh Command Registration', async () => {
+        await vscode.extensions.getExtension('batyan-soft.fast-tasks')?.activate();
+        const commands = await vscode.commands.getCommands(true);
+        assert.ok(commands.includes('fast-tasks.refreshTasks'),
+            'Refresh command should be registered');
     });
 });

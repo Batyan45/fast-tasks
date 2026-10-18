@@ -14,6 +14,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const tasksProvider = new TasksProvider(context.workspaceState, context.globalStorageUri);
         
         context.subscriptions.push(
+            tasksProvider,
             vscode.window.registerTreeDataProvider('fastTasksView', tasksProvider),
             ...registerCommands(tasksProvider)
         );
