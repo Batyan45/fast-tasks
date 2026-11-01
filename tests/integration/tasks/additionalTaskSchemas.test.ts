@@ -40,12 +40,12 @@ suite('Additional task schemas', () => {
         await schemas.sync();
         assert.deepStrictEqual(associations(first)[0], existing);
         assert.deepStrictEqual(associations(first)[1].fileMatch,
-            [`${first.uri.toString()}/.vscode/tasks-*.json`, `${first.uri.toString()}/automation/**/*.tasks.json`]);
-        assert.deepStrictEqual(associations(second)[0].fileMatch, [`${second.uri.toString()}/scripts/*.json`]);
+            ['.vscode/tasks-*.json', 'automation/**/*.tasks.json']);
+        assert.deepStrictEqual(associations(second)[0].fileMatch, ['scripts/*.json']);
         await setPatterns(first, ['new/*.json']);
         await schemas.sync();
         assert.strictEqual(associations(first).length, 2);
-        assert.deepStrictEqual(associations(first)[1].fileMatch, [`${first.uri.toString()}/new/*.json`]);
+        assert.deepStrictEqual(associations(first)[1].fileMatch, ['new/*.json']);
         await setPatterns(first, []);
         await schemas.sync();
         assert.deepStrictEqual(associations(first), [existing]);
