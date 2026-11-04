@@ -155,6 +155,42 @@
 				"color": "terminal.ansiRed"
 			},
 			"problemMatcher": []
+		},
+		// --- Demo tasks for manually verifying the "view" grouping property ---
+		{
+			"label": "Demo: view group member 1",
+			"type": "shell",
+			"command": "echo View group demo 1",
+			"view": { "parentLabel": "Demo Group" },
+			"problemMatcher": []
+		},
+		{
+			"label": "Demo: view group member 2",
+			"type": "shell",
+			"command": "echo View group demo 2",
+			"view": { "parentLabel": "Demo Group" },
+			"problemMatcher": []
+		},
+		{
+			"label": "Demo: view nested under task",
+			"type": "shell",
+			"command": "echo View parentId demo",
+			"view": { "parentId": "Demo: view group member 1" },
+			"problemMatcher": []
+		},
+		{
+			"label": "Demo: view parent (no-op)",
+			"type": "shell",
+			"command": "echo No-op parent, exists only to hold children",
+			"view": { "identifier": "demo-parent" },
+			"problemMatcher": []
+		},
+		{
+			"label": "Demo: view child via identifier",
+			"type": "shell",
+			"command": "echo Nested under the no-op parent by identifier, not label",
+			"view": { "parentId": "demo-parent" },
+			"problemMatcher": []
 		}
 	],
 	"inputs": [

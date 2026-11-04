@@ -2,6 +2,12 @@
 
 All notable changes to the "Fast Tasks" extension will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- New `view` property on task definitions in `tasks.json` for custom tree nesting: `view.parentLabel` groups tasks under a shared virtual folder node (created once, identified by the label); `view.parentId` nests a task under another task, referenced by that task's `label` by default. Exactly one of `parentLabel`/`parentId` may be set per task.
+- `view.identifier`: declares a stable name for a task, independent of its `label`, that other tasks can target via `parentId` — handy for a no-op "parent" task that exists purely to group children in the tree. Can be combined with `parentLabel` or `parentId` on the same task. Duplicate identifiers are ignored (first one wins).
+
 ## [0.2.5] - 2026-10-03
 
 ### Added
