@@ -127,6 +127,49 @@ Drag the **Tasks** header from Explorer onto the Activity Bar to give the task l
 - By default, Fast Tasks hides tasks that have `"hide": true` in `tasks.json`.
 - To show all tasks (ignore the `hide` flag), enable the setting: `Fast Tasks › Ignore Hide`.
 
+### Custom Grouping (tasks.json `view`)
+
+Nest a task under a virtual folder, or under another task, by adding a `view` object to the task definition. `view` takes `identifier` plus exactly one of `parentLabel` or `parentId` — `parentLabel` and `parentId` are mutually exclusive, but `identifier` can be combined with either (or used on its own).
+
+- `parentLabel`: nests the task under a virtual folder node with that label. The label is the folder's identifier: every task using the same `parentLabel` text lands under the same single folder, it's created once, not duplicated.
+- `parentId`: nests the task under an existing task. By default this targets that other task's own `label` in `tasks.json`, but it will also match a task's explicit `identifier` (see below) if one is set. The referenced task must exist; an unresolved or circular `parentId` is ignored (logged to the console) and the task falls back to its normal place in the tree.
+- `identifier`: declares a stable name for this task that other tasks can target via `parentId`, independent of its display `label`. Useful for a "no-op" parent task — one that exists only to group children in the tree, not to be run for its own sake — or any time you don't want child tasks coupled to a label that might change. Duplicate identifiers are ignored (first one wins, logged to the console).
+
+```json
+{
+  "label": "build:frontend",
+  "type": "shell",
+  "command": "npm run build",
+  "view": { "parentLabel": "Build" }
+},
+{
+  "label": "build:backend",
+  "type": "shell",
+  "command": "make build",
+  "view": { "parentLabel": "Build" }
+},
+{
+  "label": "build:frontend:watch",
+  "type": "shell",
+  "command": "npm run build -- --watch",
+  "view": { "parentId": "build:frontend" }
+},
+{
+  "label": "Tooling",
+  "type": "shell",
+  "command": "echo no-op",
+  "view": { "identifier": "tooling-group" }
+},
+{
+  "label": "lint",
+  "type": "shell",
+  "command": "npm run lint",
+  "view": { "parentId": "tooling-group" }
+}
+```
+
+This produces a `Build` folder containing `build:frontend` and `build:backend`, with `build:frontend:watch` nested under `build:frontend`. Separately, `Tooling` acts as a no-op parent node (its own `identifier` is `tooling-group`), and `lint` nests under it by targeting that identifier rather than the `Tooling` label.
+
 ### Keyboard Shortcuts
 - `Ctrl+Shift+P` or `Cmd+Shift+P` (Mac) and type "Fast Tasks" to see all available commands
 - Use arrow keys to navigate through tasks
