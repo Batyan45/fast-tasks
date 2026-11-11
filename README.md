@@ -127,6 +127,25 @@ Drag the **Tasks** header from Explorer onto the Activity Bar to give the task l
 - By default, Fast Tasks hides tasks that have `"hide": true` in `tasks.json`.
 - To show all tasks (ignore the `hide` flag), enable the setting: `Fast Tasks › Ignore Hide`.
 
+### Additional Task Files
+
+`fast-tasks.includeAdditionalTasksFiles` adds workspace-relative glob patterns. The default is `[".vscode/tasks-*.json"]`. Set it to `[]` to disable additional files.
+
+```json
+{
+  "fast-tasks.includeAdditionalTasksFiles": [
+    ".vscode/tasks-*.json",
+    "automation/**/*.tasks.json"
+  ]
+}
+```
+
+Matching files receive the built-in `tasks.json` schema for completion and validation through folder-level `json.schemas` associations. These associations update when patterns change; unrelated schema entries are preserved.
+
+Files use the standard JSONC `tasks.json` structure. Shell, process, and compound tasks support custom icons, `hide`, selection, status, stopping, and editing. Dependencies resolve within the same file first, then within the workspace folder. Sequential and parallel dependencies are supported. Background dependencies start without waiting for readiness matchers. Provider-specific tasks, such as `npm` and `typescript`, retain their definitions for resolution by the installed VS Code task provider.
+
+Patterns apply separately to each workspace folder and support folder-specific settings. Overlapping patterns do not duplicate files. Standard task files remain managed by VS Code. File creation, changes, deletion, and setting changes refresh the list automatically.
+
 ### Keyboard Shortcuts
 - `Ctrl+Shift+P` or `Cmd+Shift+P` (Mac) and type "Fast Tasks" to see all available commands
 - Use arrow keys to navigate through tasks
@@ -138,10 +157,11 @@ Drag the **Tasks** header from Explorer onto the Activity Bar to give the task l
 Fast Tasks supports tasks from multiple sources:
 
 - **Workspace folder tasks**: Tasks defined in `.vscode/tasks.json` or `tasks.json` in workspace folders
+- **Additional workspace tasks**: JSONC task files matched by `fast-tasks.includeAdditionalTasksFiles`
 - **Multi-root workspace tasks**: Tasks defined in `.code-workspace` files (both standard `tasks` property and `settings.tasks` property)
 - **User tasks**: Global tasks defined in User `tasks.json` (accessible via "Tasks: Open User Tasks" command) or in the `tasks` section of user `settings.json`
 
-All task sources support custom icons, the "Edit Task" feature, and the `hide` flag. Custom icons and `hide` flags are read through the VS Code configuration model, so they work with any VS Code distribution, profiles, and remote setups (WSL/SSH).
+All task sources support custom icons, the "Edit Task" feature, and the `hide` flag. Standard task metadata uses the VS Code configuration model. Additional files use the workspace filesystem API, including remote workspaces.
 
 ## Requirements
 

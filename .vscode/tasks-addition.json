@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "✚ Add Task",
+            "type": "shell",
+            "command": "echo",
+            "args": [
+                "Add your own tasks, outside tasks.json, to manage them seperately."
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": true,
+                "clear": true,
+                "echo": false,
+                "showReuseMessage": false
+            }
+        }
+    ]
+}
